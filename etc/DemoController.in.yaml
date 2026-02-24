@@ -242,27 +242,63 @@ states:
     configs:
       autoStartTime: 2.0
 
+  RaiseHands:
+    base: MetaTasks
+    tasks:
+      EndEffectorTaskRight:
+        type: body6d
+        frame: LeftHandWrench
+        weight: 1000
+        stiffness: 5
+        relative:
+          s1: LeftFootCenter
+          s2: RightFootCenter
+          position: [ 0.0, 0.2, 0.8 ]
+          orientation: [0.5, 0.5, 0.5, -0.5]
+        completion:
+          timeout: 5.0
+          AND:
+            - eval: 0.1
+            - speed: 1e-4
+      EndEffectorTaskLeft:
+        type: body6d
+        frame: RightHandWrench
+        weight: 1000
+        stiffness: 5
+        relative:
+          s1: LeftFootCenter
+          s2: RightFootCenter
+          position: [ 0.0, -0.2, 0.8 ]
+          orientation: [0.5, -0.5, 0.5, 0.5]
+        completion:
+          timeout: 5.0
+          AND:
+            - eval: 0.1
+            - speed: 1e-4
+
   Walk:
     base: BWC::ConfigWalk
     configs:
       footMidpose:
-        target: [ 1.2, 0.3, 0.0 ] # [m], [deg]
+        target: [ 1.25, 0.3, 0.0 ] # [m], [deg]
 
   GraspAndLiftBox:
     base: GraspLiftBox
     objectName: zbox0
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
-    approachOffsetZ: 0.025
-    liftHeight: 0.12
+    weight: 10000
+    stiffness: 5
+    approachOffset: 0.4
+    liftHeight: 0.2
+    liftPullback: 0.2
     completionEval: 0.05
     completionSpeed: 1.0e-4
 
-# Transitions map
-# TODO: raise hands above table before or during walking, to avoid collision between hands and table
 transitions:
   - [ Initial, OK, Walk, Auto ]
-  - [ Walk, OK, GraspAndLiftBox, Auto ]
+  - [ Walk, OK, RaiseHands, Auto ]
+  - [ RaiseHands, OK, GraspAndLiftBox, Auto ]
 
 # Initial state
 init: Initial
@@ -292,12 +328,12 @@ robots:
   zbox0:
     module: env/box
     init_pos:
-      translation: [ 1.75, 0.3, 0.74 ]
+      translation: [ 1.7, 0.3, 0.74 ]
       rotation: [ 0.0, 1.57, 0.0 ]
   zbox1:
     module: env/box
     init_pos:
-      translation: [ 1.75, -0.3, 0.74 ]
+      translation: [ 1.7, -0.3, 0.74 ]
       rotation: [ 0.0, 1.57, 0.0 ]
   shelf0:
     module: env/table

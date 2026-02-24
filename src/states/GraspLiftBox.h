@@ -18,19 +18,25 @@ private:
     enum class Phase
     {
         Approach,
+        Grasping,
         Lift,
         Done
     };
 
-    std::shared_ptr<mc_tasks::TransformTask> leftGripperTask, rightGripperTask;
+    std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask, m_rightGripperTask;
 
-    std::string objectName_;
-    std::string objectSurfaceLeftGripper_, objectSurfaceRightGripper_;
-    double approachOffsetZ_ = 0.025;
-    double liftHeight_ = 0.10;
-    double completionEval_ = 0.05;
-    double completionSpeed_ = 1e-4;
-    bool contactAdded_ = false;
+    std::string m_objectName;
+    std::string m_objectSurfaceLeftGripper, m_objectSurfaceRightGripper;
 
-    Phase phase_ = Phase::Approach;
+    double m_stiffness = 1.0;
+    double m_weight = 1000.0;
+    double m_approachOffset = 0.025;
+    double m_liftHeight = 0.10;
+    double m_liftPullback = 0.0;
+    double m_completionEval = 0.05;
+    double m_completionSpeed = 1e-4;
+
+    bool m_contactAdded = false;
+    bool m_removeContactAtTeardown = true;
+    Phase m_phase = Phase::Approach;
 };
