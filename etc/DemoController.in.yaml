@@ -28,20 +28,20 @@ constraints:
 collisions:
   - type: collision
     useMinimal: true
-  - type: collision
-    r1: rhps1
-    r2: desk
-    collisions:
-    - body1: L_WRIST_Y_LINK
-      body2: table
-      iDist: 0.1
-      sDist: 0.05
-      damping: 0.0
-    - body1: R_WRIST_Y_LINK
-      body2: table
-      iDist: 0.1
-      sDist: 0.05
-      damping: 0.0
+#  - type: collision
+#    r1: rhps1
+#    r2: desk
+#    collisions:
+#    - body1: L_WRIST_Y_LINK
+#      body2: table
+#      iDist: 0.1
+#      sDist: 0.05
+#      damping: 0.0
+#    - body1: R_WRIST_Y_LINK
+#      body2: table
+#      iDist: 0.1
+#      sDist: 0.05
+#      damping: 0.0
 
 PostureTask:
   stiffness: 10
