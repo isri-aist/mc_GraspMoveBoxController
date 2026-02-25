@@ -260,12 +260,15 @@ states:
   MoveBox0:
     base: GraspMoveBox
     objectName: zbox0
-    graspFromPose: [ 1.25, 0.3, 0.0 ]
-    dropFromPose: [ 0.6, -0.5, -1.57 ]
+    graspFromPose:
+      - [ 1.25, 0.3, 0.0 ]
+    dropFromPose:
+      - [ 1.25, 0.3, -2.0 ]
+      - [ 0.6, -0.5, -1.57 ]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
     weight: 1000
-    stiffness: 50
+    stiffness: 100
     approachOffset: 0.1
     liftHeight: 0.2 # from BODY frame
     liftDistance: 0.4
@@ -278,11 +281,15 @@ states:
   MoveBox1:
     base: GraspMoveBox
     objectName: zbox0
-    graspFromPose: [ 1.25, -0.3, 0.0 ]
-    dropFromPose: [ 1.25, -0.3, 3.14 ]
+    graspFromPose:
+      - [ 0.0, 0.0, 0.0]
+      - [ 1.25, -0.3, 0.0 ]
+    dropFromPose:
+      - [ 1.25, -0.3, -2.8 ]
+      - [ 0.6, 0.7, 1.57 ]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
-    weight: 1000
+    weight: 2000
     stiffness: 50
     approachOffset: 0.1
     liftHeight: 0.4

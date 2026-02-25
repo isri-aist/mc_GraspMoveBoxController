@@ -3,6 +3,7 @@
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/TransformTask.h>
 #include <memory>
+#include <vector>
 
 struct GraspMoveBox : mc_control::fsm::State
 {
@@ -37,7 +38,8 @@ private:
             m_objectSurfaceLeftGripper,
             m_objectSurfaceRightGripper;
 
-    Eigen::Vector3d m_graspFromPose, m_dropFromPose;
+    std::vector<Eigen::Vector3d> m_graspFromPoses, m_dropFromPoses;
+    size_t m_graspWaypointIndex = 0, m_dropWaypointIndex = 0;
 
     double
             m_stiffness = 1.0,

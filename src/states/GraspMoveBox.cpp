@@ -14,8 +14,38 @@ void GraspMoveBox::configure(const mc_rtc::Configuration &config)
     config("objectName", m_objectName);
     config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
-    config("graspFromPose", m_graspFromPose);
-    config("dropFromPose", m_dropFromPose);
+
+    // graspFromPose can be a single [x, y, theta] or a list of waypoints [[x, y, theta], ...]
+    if(config.has("graspFromPose"))
+    {
+        auto graspConf = config("graspFromPose");
+        // Check if first element is an array (list of waypoints) or a number (single pose)
+        if(graspConf.size() > 0 && graspConf[0].size() > 0)
+        {
+            m_graspFromPoses = graspConf.operator std::vector<Eigen::Vector3d>();
+        }
+        else
+        {
+            m_graspFromPoses.clear();
+            m_graspFromPoses.push_back(graspConf.operator Eigen::Vector3d());
+        }
+    }
+
+    // dropFromPose can be a single [x, y, theta] or a list of waypoints [[x, y, theta], ...]
+    if(config.has("dropFromPose"))
+    {
+        auto dropConf = config("dropFromPose");
+        if(dropConf.size() > 0 && dropConf[0].size() > 0)
+        {
+            m_dropFromPoses = dropConf.operator std::vector<Eigen::Vector3d>();
+        }
+        else
+        {
+            m_dropFromPoses.clear();
+            m_dropFromPoses.push_back(dropConf.operator Eigen::Vector3d());
+        }
+    }
+
     config("stiffness", m_stiffness);
     config("weight", m_weight);
     config("approachOffset", m_approachOffset);
@@ -37,12 +67,17 @@ void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    Eigen::Vector3d targetRelativePose = relativePose(m_graspFromPose, ctl.robot().posW());
+    m_graspWaypointIndex = 0;
+    m_dropWaypointIndex = 0;
+
+    Eigen::Vector3d targetRelativePose = relativePose(m_graspFromPoses[m_graspWaypointIndex], ctl.robot().posW());
 
     mc_rtc::log::info
     (
-        "target: {}, relative target: {}",
-        m_graspFromPose.transpose(),
+        "Walking to grasp waypoint {}/{}: {}, relative: {}",
+        m_graspWaypointIndex + 1,
+        m_graspFromPoses.size(),
+        m_graspFromPoses[m_graspWaypointIndex].transpose(),
         targetRelativePose.transpose()
     );
 
@@ -79,6 +114,23 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::WalkToBox && ctl.footManager_->footstepQueue().empty())
     {
+        m_graspWaypointIndex++;
+        if (m_graspWaypointIndex < m_graspFromPoses.size())
+        {
+            // Walk to the next grasp waypoint
+            Eigen::Vector3d targetRelativePose = relativePose(m_graspFromPoses[m_graspWaypointIndex], ctl.robot().posW());
+            mc_rtc::log::info
+            (
+                "Walking to grasp waypoint {}/{}: {}, relative: {}",
+                m_graspWaypointIndex + 1,
+                m_graspFromPoses.size(),
+                m_graspFromPoses[m_graspWaypointIndex].transpose(),
+                targetRelativePose.transpose()
+            );
+            ctl.footManager_->walkToRelativePose(targetRelativePose);
+            return false;
+        }
+
         mc_rtc::log::info("Now in raise hands phase");
         m_phase = Phase::RaiseHands;
 
@@ -243,7 +295,17 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
     {
         mc_rtc::log::info("Now in walk to drop phase");
         m_phase = Phase::WalkToDrop;
-        Eigen::Vector3d targetRelativePose = relativePose(m_dropFromPose, ctl.robot().posW());
+        m_dropWaypointIndex = 0;
+        Eigen::Vector3d targetRelativePose = relativePose(m_dropFromPoses[m_dropWaypointIndex], ctl.robot().posW());
+
+        mc_rtc::log::info
+        (
+            "Walking to drop waypoint {}/{}: {}, relative: {}",
+            m_dropWaypointIndex + 1,
+            m_dropFromPoses.size(),
+            m_dropFromPoses[m_dropWaypointIndex].transpose(),
+            targetRelativePose.transpose()
+        );
 
         ctl.footManager_->walkToRelativePose(targetRelativePose);
 
@@ -252,6 +314,23 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::WalkToDrop && ctl.footManager_->footstepQueue().empty())
     {
+        m_dropWaypointIndex++;
+        if (m_dropWaypointIndex < m_dropFromPoses.size())
+        {
+            // Walk to the next drop waypoint
+            Eigen::Vector3d targetRelativePose = relativePose(m_dropFromPoses[m_dropWaypointIndex], ctl.robot().posW());
+            mc_rtc::log::info
+            (
+                "Walking to drop waypoint {}/{}: {}, relative: {}",
+                m_dropWaypointIndex + 1,
+                m_dropFromPoses.size(),
+                m_dropFromPoses[m_dropWaypointIndex].transpose(),
+                targetRelativePose.transpose()
+            );
+            ctl.footManager_->walkToRelativePose(targetRelativePose);
+            return false;
+        }
+
         mc_rtc::log::info("Now in lower box phase");
         m_phase = Phase::LowerBox;
 
