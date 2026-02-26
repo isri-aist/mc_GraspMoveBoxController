@@ -255,7 +255,45 @@ states:
       autoStartTime: 2.0
 
   Walk:
-    base: BWC::GuiWalk
+    base: BWC::FootstepPlanner
+    configs:
+      autoStart: true
+
+      maxPlanningDuration: 1.0 # [sec]
+      initialHeuristicsWeight: 10.0
+
+      footstepPlanner:
+        theta_divide_num: 64
+        xy_divide_step: 0.01 # [m]
+
+        cost_scale: 1.0e3
+        theta_scale: 0 # [m/rad]
+        step_cost: 1.0
+
+        heuristic_type: DijkstraPath
+        dijkstra_path_heuristic_expand_scale: 5.0
+
+        nominal_foot_separation: 0.2 # [m]
+
+        r2l_action_cont_list: # [m], [rad]
+          [
+            [ 0.175, 0, 0 ],
+            [ -0.125, 0, 0 ],
+            [ 0, 0.125, 0 ],
+            [ 0, -0.05, 0 ],
+            [ 0, 0, 0.2618 ],
+            [ 0, 0, -0.2618 ]
+          ]
+
+        r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
+        r2l_reachable_max: [ 0.1, 0.1, 0.1745 ] # [m], [rad]
+        rect_obstacle_list:
+          # desk (at [2.0, 0.0], rotated 90 deg)
+          - [2.0, 0.0, 0.45, 0.8]
+          # shelf0 (at [0.6, 1.0])
+          - [0.6, 1.0, 0.8, 0.45]
+          # shelf1 (at [0.6, -1.35])
+          - [0.6, -1.35, 0.8, 0.45]
 
   MoveBox0:
     base: GraspMoveBox
@@ -265,7 +303,7 @@ states:
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
     weight: 1000
-    stiffness: 100
+    stiffness: 50
     approachOffset: 0.1
     liftHeight: 0.2 # from BODY frame
     liftDistance: 0.4
@@ -282,7 +320,7 @@ states:
     dropFromPose: [ 1.25, -0.3, 3.14 ]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
-    weight: 2000
+    weight: 1000
     stiffness: 50
     approachOffset: 0.1
     liftHeight: 0.4
