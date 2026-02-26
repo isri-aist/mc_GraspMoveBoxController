@@ -31,28 +31,62 @@ void GraspMoveBox::configure(const mc_rtc::Configuration &config)
     config("raiseLeftHandOrientation", m_raiseLeftHandOrientation);
     config("raiseRightHandOrientation", m_raiseRightHandOrientation);
     config("Timeout", m_Timeout);
+
+    m_raiseLeftHandPose = {
+                    m_raiseLeftHandOrientation.toRotationMatrix(),
+                    m_raiseLeftHandPosition
+            };
+    m_raiseRightHandPose = {
+                    m_raiseRightHandOrientation.toRotationMatrix(),
+                    m_raiseRightHandPosition
+            };
+    m_contactAdded = false;
 }
 
 void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    Eigen::Vector3d targetRelativePose = relativePose(m_graspFromPose, ctl.robot().posW());
+    m_leftGripperTask =
+            std::make_shared<mc_tasks::TransformTask>(
+                                                      ctl.robot().frame("LeftHandWrench"),
+                                                      m_stiffness,
+                                                      m_weight
+                                                     );
+    m_rightGripperTask =
+            std::make_shared<mc_tasks::TransformTask>(
+                                                      ctl.robot().frame("RightHandWrench"),
+                                                      m_stiffness,
+                                                      m_weight
+                                                     );
 
-    mc_rtc::log::info(
-                      "target: {}, robot {}, relative target: {}",
-                      m_graspFromPose.transpose(),
-                      ctl.robot().posW().translation().transpose(),
-                      targetRelativePose.transpose()
-                     );
+    m_leftContact = mc_control::Contact(
+                                        ctl.robot().name(),
+                                        ctl.robot(m_objectName).name(),
+                                        "RightHandWrench",
+                                        m_objectSurfaceRightGripper,
+                                        mc_rbdyn::Contact::defaultFriction,
+                                        Eigen::Vector6d::Ones()
+                                       );
+    m_rightContact = mc_control::Contact(
+                                         ctl.robot().name(),
+                                         ctl.robot(m_objectName).name(),
+                                         "RightHandWrench",
+                                         m_objectSurfaceRightGripper,
+                                         mc_rbdyn::Contact::defaultFriction,
+                                         Eigen::Vector6d::Ones()
+                                        );
 
-    ctl.footManager_->reset();
-    ctl.footManager_->walkToRelativePose(targetRelativePose);
-
-    mc_rtc::log::info("Now in walk to box phase");
-    m_phase = Phase::WalkToBox;
-
-    m_contactAdded = false;
+    m_BoxHalfWidth = 0.5 * (
+                         ctl.robot(m_objectName)
+                            .frame(m_objectSurfaceLeftGripper)
+                            .position()
+                            .translation()
+                         - ctl.robot(m_objectName)
+                              .frame(m_objectSurfaceRightGripper)
+                              .position()
+                              .translation()
+                     ).norm();
 }
 
 bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
@@ -71,11 +105,17 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
-    if (
-            (m_phase == Phase::WalkToBox)
-            && !ctl.footManager_->footstepQueue().empty()
-        )
-        return false;
+    if (m_phase == Phase::None)
+    {
+        m_TargetRelative2D = relativePose2D(m_graspFromPose, ctl.robot().posW());
+        ctl.footManager_->reset();
+        ctl.footManager_->walkToRelativePose(m_TargetRelative2D);
+
+        mc_rtc::log::info("Now in walk to box phase");
+        m_phase = Phase::WalkToBox;
+    }
+
+    if (m_phase == Phase::WalkToBox && !ctl.footManager_->footstepQueue().empty()) return false;
 
     if (m_phase == Phase::WalkToBox && ctl.footManager_->footstepQueue().empty())
     {
@@ -84,25 +124,13 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
         m_StartTime = ctl.t();
 
-        m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>(
-             ctl.robot().frame("LeftHandWrench"),
-             m_stiffness,
-             m_weight
-            );
-
         auto &robotBodyFrame = ctl.robot().frame("BODY");
 
-        sva::PTransformd leftTarget;
-        leftTarget.translation() = m_raiseLeftHandPosition;
-        leftTarget.rotation()    = m_raiseLeftHandOrientation.toRotationMatrix();
-        m_leftGripperTask->target(robotBodyFrame, leftTarget);
+        m_leftHandTarget.translation() = m_raiseLeftHandPosition;
+        m_leftHandTarget.rotation()    = m_raiseLeftHandOrientation.toRotationMatrix();
+        m_leftGripperTask->target(robotBodyFrame, m_leftHandTarget);
         ctl.solver().addTask(m_leftGripperTask);
 
-        m_rightGripperTask = std::make_shared<mc_tasks::TransformTask>(
-             ctl.robot().frame("RightHandWrench"),
-             m_stiffness,
-             m_weight
-            );
         sva::PTransformd rightTarget;
         rightTarget.translation() = m_raiseRightHandPosition;
         rightTarget.rotation()    = m_raiseRightHandOrientation.toRotationMatrix();
@@ -174,53 +202,22 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
         mc_rtc::log::info("Now in lift phase");
         m_phase = Phase::RaiseBox;
 
-        auto leftContact = mc_control::Contact(
-                                               ctl.robot().name(),
-                                               ctl.robot(m_objectName).name(),
-                                               "LeftHandWrench",
-                                               m_objectSurfaceLeftGripper,
-                                               mc_rbdyn::Contact::defaultFriction,
-                                               Eigen::Vector6d::Ones()
-                                              );
-        ctl.addContact(leftContact);
-
-        auto rightContact = mc_control::Contact(
-                                                ctl.robot().name(),
-                                                ctl.robot(m_objectName).name(),
-                                                "RightHandWrench",
-                                                m_objectSurfaceRightGripper,
-                                                mc_rbdyn::Contact::defaultFriction,
-                                                Eigen::Vector6d::Ones()
-                                               );
-        ctl.addContact(rightContact);
+        ctl.addContact(m_leftContact);
+        ctl.addContact(m_rightContact);
 
         m_contactAdded = true;
 
         return false;
     }
 
-    if (
-            m_phase == Phase::RaiseBox
-            || m_phase == Phase::WalkToDrop
-            || m_phase == Phase::DropBox
-        )
+    if (m_phase == Phase::RaiseBox || m_phase == Phase::WalkToDrop || m_phase == Phase::DropBox)
     {
         auto &robotBodyFrame = ctl.robot().frame("BODY");
-        auto  halfDistance   = 0.5 * (
-                                ctl.robot(m_objectName)
-                                   .frame(m_objectSurfaceLeftGripper)
-                                   .position()
-                                   .translation()
-                                - ctl.robot(m_objectName)
-                                     .frame(m_objectSurfaceRightGripper)
-                                     .position()
-                                     .translation()
-                            ).norm();
 
         sva::PTransformd leftLiftTarget = m_leftGripperTask->target();
         leftLiftTarget.translation()    = Eigen::Vector3d(
                                                        m_liftDistance,
-                                                       halfDistance,
+                                                       m_BoxHalfWidth,
                                                        m_liftHeight
                                                       );
         leftLiftTarget.rotation() = m_raiseLeftHandOrientation.toRotationMatrix();
@@ -229,7 +226,7 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
         sva::PTransformd rightLiftTarget = m_rightGripperTask->target();
         rightLiftTarget.translation()    = Eigen::Vector3d(
                                                         m_liftDistance,
-                                                        -halfDistance,
+                                                        -m_BoxHalfWidth,
                                                         m_liftHeight
                                                        );
         rightLiftTarget.rotation() = m_raiseRightHandOrientation.toRotationMatrix();
@@ -240,7 +237,7 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
     {
         mc_rtc::log::info("Now in walk to drop phase");
         m_phase                            = Phase::WalkToDrop;
-        Eigen::Vector3d targetRelativePose = relativePose(m_dropFromPose, ctl.robot().posW());
+        Eigen::Vector3d targetRelativePose = relativePose2D(m_dropFromPose, ctl.robot().posW());
 
         mc_rtc::log::info(
                           "target: {}, robot {}, relative target: {}",
@@ -261,21 +258,11 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
         m_phase = Phase::LowerBox;
 
         auto &robotBodyFrame = ctl.robot().frame("BODY");
-        auto  halfDistance   = 0.5 * (
-                                ctl.robot(m_objectName)
-                                   .frame(m_objectSurfaceLeftGripper)
-                                   .position()
-                                   .translation()
-                                - ctl.robot(m_objectName)
-                                     .frame(m_objectSurfaceRightGripper)
-                                     .position()
-                                     .translation()
-                            ).norm();
 
         sva::PTransformd leftDropTarget = m_leftGripperTask->target();
         leftDropTarget.translation()    = Eigen::Vector3d(
                                                        m_dropDistance,
-                                                       halfDistance,
+                                                       m_BoxHalfWidth,
                                                        m_dropHeight
                                                       );
         leftDropTarget.rotation() = m_raiseLeftHandOrientation.toRotationMatrix();
@@ -285,7 +272,7 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
         sva::PTransformd rightDropTarget = m_rightGripperTask->target();
         rightDropTarget.translation()    = Eigen::Vector3d(
                                                         m_dropDistance,
-                                                        -halfDistance,
+                                                        -m_BoxHalfWidth,
                                                         m_dropHeight
                                                        );
         rightDropTarget.rotation() = m_raiseRightHandOrientation.toRotationMatrix();
@@ -299,22 +286,8 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
         if (m_contactAdded)
         {
-            ctl.removeContact(
-                              {
-                                      ctl.robot().name(),
-                                      ctl.robot(m_objectName).name(),
-                                      "LeftHandWrench",
-                                      m_objectSurfaceLeftGripper
-                              }
-                             );
-            ctl.removeContact(
-                              {
-                                      ctl.robot().name(),
-                                      ctl.robot(m_objectName).name(),
-                                      "RightHandWrench",
-                                      m_objectSurfaceRightGripper
-                              }
-                             );
+            ctl.removeContact(m_leftContact);
+            ctl.removeContact(m_leftContact);
             m_contactAdded = false;
         }
 
@@ -379,40 +352,48 @@ void GraspMoveBox::teardown(mc_control::fsm::Controller &ctl_)
 
     if (m_contactAdded && m_removeContactAtTeardown)
     {
-        ctl.removeContact(
-                          {
-                                  ctl.robot().name(),
-                                  ctl.robot(m_objectName).name(),
-                                  "LeftHandWrench",
-                                  m_objectSurfaceLeftGripper
-                          }
-                         );
-        ctl.removeContact(
-                          {
-                                  ctl.robot().name(),
-                                  ctl.robot(m_objectName).name(),
-                                  "RightHandWrench",
-                                  m_objectSurfaceRightGripper
-                          }
-                         );
+        ctl.removeContact(m_leftContact);
+        ctl.removeContact(m_leftContact);
         m_contactAdded = false;
     }
 }
 
-Eigen::Vector3d GraspMoveBox::relativePose(Eigen::Vector3d absolutePose, sva::PTransformd robotPose)
+sva::PTransformd GraspMoveBox::horizonAlignedRelativePose(
+        Eigen::Quaterniond absoluteOrientation,
+        Eigen::Vector3d    absolutePosition,
+        sva::PTransformd   robotPose
+        )
+{
+    return horizonAlignedRelativePose({absoluteOrientation, absolutePosition}, robotPose);
+}
+
+sva::PTransformd GraspMoveBox::horizonAlignedRelativePose(
+        sva::PTransformd absolutePose,
+        sva::PTransformd robotPose
+        )
+{
+    double           angle(mc_rbdyn::rpyFromMat(robotPose.rotation()).z());
+    sva::PTransformd relativePose(sva::RotZ(-angle), Eigen::Vector3d::Zero());
+
+    relativePose.translation() = relativePose.rotation() * (
+                                     absolutePose.translation() - robotPose.translation());
+
+    return relativePose;
+}
+
+Eigen::Vector3d GraspMoveBox::relativePose2D(
+        Eigen::Vector3d  absolutePose,
+        sva::PTransformd robotPose
+        )
 {
     double          angle(mc_rbdyn::rpyFromMat(robotPose.rotation()).z());
     Eigen::Matrix2d rotation = Eigen::Rotation2Dd(-angle).toRotationMatrix();
-
-    mc_rtc::log::info("robot angle: {}", angle);
 
     Eigen::Vector2d relativePosition(
                                      absolutePose.x() - robotPose.translation().x(),
                                      absolutePose.y() - robotPose.translation().y()
                                     );
-    mc_rtc::log::info("relative position: {}", relativePosition);
     relativePosition = rotation.inverse() * relativePosition;
-    mc_rtc::log::info("relative position: {}", relativePosition);
 
     Eigen::Vector3d relativePose(
                                  relativePosition.x(),
