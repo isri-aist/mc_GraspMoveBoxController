@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mc_control/mc_controller.h>
 #include <mc_control/fsm/Controller.h>
 #include <BaselineWalkingController/BaselineWalkingController.h>
 #include "api.h"
