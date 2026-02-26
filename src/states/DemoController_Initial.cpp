@@ -21,8 +21,4 @@ void DemoController_Initial::teardown(mc_control::fsm::Controller &ctl_)
     auto &ctl = static_cast<DemoController &>(ctl_);
 }
 
-EXPORT_SINGLE_STATE (
-"DemoController_Initial"
-,
-DemoController_Initial
-)
+EXPORT_SINGLE_STATE("DemoController_Initial", DemoController_Initial)
