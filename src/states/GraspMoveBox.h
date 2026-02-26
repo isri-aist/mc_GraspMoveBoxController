@@ -9,10 +9,10 @@
 struct GraspMoveBox: mc_control::fsm::State
 {
     public:
-        void configure(const mc_rtc::Configuration &config) override;
-        void start(mc_control::fsm::Controller &ctl) override;
-        bool run(mc_control::fsm::Controller &ctl) override;
-        void teardown(mc_control::fsm::Controller &ctl) override;
+        void configure(const mc_rtc::Configuration &) override;
+        void start(mc_control::fsm::Controller &) override;
+        bool run(mc_control::fsm::Controller &) override;
+        void teardown(mc_control::fsm::Controller &) override;
 
     private:
         enum class Phase
@@ -36,14 +36,7 @@ struct GraspMoveBox: mc_control::fsm::State
                     m_objectSurfaceLeftGripper,
                     m_objectSurfaceRightGripper;
 
-        mc_control::Contact m_leftContact{}, m_rightContact{};
-
-        Eigen::Vector3d m_graspFromPose, m_dropFromPose, m_TargetRelative2D;
-
-        sva::PTransformd m_leftHandTarget,
-                         m_rightHandTarget,
-                         m_raiseLeftHandPose,
-                         m_raiseRightHandPose;
+        Phase m_phase = Phase::None;
 
         double m_stiffness       = 1.0,
                m_weight          = 1000.0,
@@ -58,25 +51,27 @@ struct GraspMoveBox: mc_control::fsm::State
                m_completionSpeed = 1e-3,
                m_BoxHalfWidth    = 0.0;
 
-        Eigen::Vector3d m_raiseLeftHandPosition  = Eigen::Vector3d(0.0, 0.25, 0.0),
-                        m_raiseRightHandPosition = Eigen::Vector3d(0.0, -0.25, 0.0);
-
-        Eigen::Quaterniond m_raiseLeftHandOrientation  = Eigen::Quaterniond(0.5, 0.5, 0.5, -0.5),
-                           m_raiseRightHandOrientation = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5);
-
         bool m_contactAdded            = false,
              m_removeContactAtTeardown = true;
 
-        Phase m_phase = Phase::None;
+        mc_control::Contact m_leftContact{}, m_rightContact{};
 
-        sva::PTransformd horizonAlignedRelativePose(
-                Eigen::Quaterniond absoluteOrientation,
-                Eigen::Vector3d    absolutePosition,
-                sva::PTransformd   robotPose
-                );
-        sva::PTransformd horizonAlignedRelativePose(
-                sva::PTransformd absolutePose,
-                sva::PTransformd robotPose
-                );
-        Eigen::Vector3d relativePose2D(Eigen::Vector3d absolutePose, sva::PTransformd robotPose);
+        Eigen::Vector3d m_graspFromPoseWorld,
+                        m_dropFromPoseWorld,
+                        m_Target2DRobot,
+                        m_safeLeftHandPositionRobot  = Eigen::Vector3d(0.0, 0.25, 0.0),
+                        m_safeRightHandPositionRobot = Eigen::Vector3d(0.0, -0.25, 0.0);
+
+        Eigen::Quaterniond
+                m_leftHandGraspOrientationRobot  = Eigen::Quaterniond(0.5, 0.5, 0.5, -0.5),
+                m_rightHandGraspOrientationRobot = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5);
+
+        sva::PTransformd m_leftHandTargetWorld,
+                         m_leftHandTargetRobot,
+                         m_rightHandTargetWorld,
+                         m_rightHandTargetRobot;
+
+        Eigen::Matrix3d toXYPlane(Eigen::Matrix3d);
+        sva::PTransformd toHorizonAlignedPoseWorld(sva::PTransformd, sva::PTransformd);
+        Eigen::Vector3d  toPose2DRobot(Eigen::Vector3d, sva::PTransformd);
 };
