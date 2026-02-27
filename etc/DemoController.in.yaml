@@ -312,6 +312,7 @@ states:
     completionEval: 0.1
     completionSpeed: 1.0e-3
     Timeout: 2.0
+    manualPhaseChange: true
 
   MoveBox1:
     base: GraspMoveBox
@@ -334,7 +335,7 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [ MoveBox0, OK, MoveBox1, Auto ]
+      - [ MoveBox0, OK, MoveBox1, Strict ]
 
   Main:
     base: Parallel

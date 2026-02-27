@@ -52,7 +52,9 @@ struct GraspMoveBox: mc_control::fsm::State
                m_BoxHalfWidth    = 0.0;
 
         bool m_contactAdded            = false,
-             m_removeContactAtTeardown = true;
+             m_removeContactAtTeardown = true,
+             m_manualPhaseChange       = false,
+             m_allowPhaseChange        = true;
 
         mc_control::Contact m_leftContact{}, m_rightContact{};
 
@@ -71,7 +73,7 @@ struct GraspMoveBox: mc_control::fsm::State
                          m_rightHandTargetWorld,
                          m_rightHandTargetRobot;
 
-        Eigen::Matrix3d toXYPlane(Eigen::Matrix3d);
+        Eigen::Matrix3d  toXYPlane(Eigen::Matrix3d);
         sva::PTransformd toHorizonAlignedPoseWorld(sva::PTransformd, sva::PTransformd);
         Eigen::Vector3d  toPose2DRobot(Eigen::Vector3d, sva::PTransformd);
 };

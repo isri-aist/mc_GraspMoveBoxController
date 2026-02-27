@@ -30,14 +30,24 @@ void GraspMoveBox::configure(const mc_rtc::Configuration &config)
     config("safeRightHandPositionRobot", m_safeRightHandPositionRobot);
     config("LeftHandGraspOrientationRobot", m_leftHandGraspOrientationRobot);
     config("RightHandGraspOrientationRobot", m_rightHandGraspOrientationRobot);
+    config("manualPhaseChange", m_manualPhaseChange);
     config("Timeout", m_Timeout);
 
-    m_contactAdded = false;
+    m_contactAdded     = false;
+    m_allowPhaseChange = !m_manualPhaseChange;
 }
 
 void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
+
+    ctl.gui()->addElement(
+                          {"GraspMoveBox"},
+                          mc_rtc::gui::Button(
+                                              "Next Phase",
+                                              [this] { m_allowPhaseChange = true; }
+                                             )
+                         );
 
     m_leftGripperTask =
             std::make_shared<mc_tasks::TransformTask>(
@@ -99,6 +109,9 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::None)
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in walk to box phase");
         m_phase = Phase::WalkToBox;
 
@@ -113,6 +126,9 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::WalkToBox && ctl.footManager_->footstepQueue().empty())
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in raise hands phase");
         m_phase = Phase::RaiseHands;
 
@@ -144,6 +160,9 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::RaiseHands && completed)
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in approach phase");
         m_phase = Phase::ApproachBox;
 
@@ -159,8 +178,8 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
         m_leftGripperTask->target(m_leftHandTargetWorld);
 
         m_rightHandTargetWorld = ctl.robot(m_objectName)
-                           .frame(m_objectSurfaceRightGripper)
-                           .position();
+                                    .frame(m_objectSurfaceRightGripper)
+                                    .position();
         m_rightHandTargetWorld.translation() += ctl.robot().posW().rotation()
                 * Eigen::Vector3d(0.0, -m_approachOffset, 0.0);
         m_rightHandTargetWorld.rotation() = m_rightHandGraspOrientationRobot.toRotationMatrix();
@@ -171,21 +190,24 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::ApproachBox && completed)
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in grasping phase");
         m_phase = Phase::GraspBox;
 
-        m_leftHandTargetWorld          = m_leftGripperTask->target();
+        m_leftHandTargetWorld               = m_leftGripperTask->target();
         m_leftHandTargetWorld.translation() = ctl.robot(m_objectName)
-                                              .frame(m_objectSurfaceLeftGripper)
-                                              .position()
-                                              .translation();
+                                                 .frame(m_objectSurfaceLeftGripper)
+                                                 .position()
+                                                 .translation();
         m_leftGripperTask->target(m_leftHandTargetWorld);
 
-        m_rightHandTargetWorld          = m_rightGripperTask->target();
+        m_rightHandTargetWorld               = m_rightGripperTask->target();
         m_rightHandTargetWorld.translation() = ctl.robot(m_objectName)
-                                               .frame(m_objectSurfaceRightGripper)
-                                               .position()
-                                               .translation();
+                                                  .frame(m_objectSurfaceRightGripper)
+                                                  .position()
+                                                  .translation();
         m_rightGripperTask->target(m_rightHandTargetWorld);
 
         return false;
@@ -193,6 +215,9 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::GraspBox && completed)
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in lift phase");
         m_phase = Phase::RaiseBox;
 
@@ -208,35 +233,39 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
     {
         auto &robotBodyFrame = ctl.robot().frame("BODY");
 
-        m_leftHandTargetRobot.translation()    = Eigen::Vector3d(
-                                                       m_liftDistance,
-                                                       m_BoxHalfWidth,
-                                                       m_liftHeight
-                                                      );
+        m_leftHandTargetRobot.translation() = Eigen::Vector3d(
+                                                              m_liftDistance,
+                                                              m_BoxHalfWidth,
+                                                              m_liftHeight
+                                                             );
         m_leftHandTargetRobot.rotation() = m_leftHandGraspOrientationRobot.toRotationMatrix();
         m_leftGripperTask->target(robotBodyFrame, m_leftHandTargetRobot);
 
-        m_rightHandTargetRobot.translation()    = Eigen::Vector3d(
-                                                        m_liftDistance,
-                                                        -m_BoxHalfWidth,
-                                                        m_liftHeight
-                                                       );
+        m_rightHandTargetRobot.translation() = Eigen::Vector3d(
+                                                               m_liftDistance,
+                                                               -m_BoxHalfWidth,
+                                                               m_liftHeight
+                                                              );
         m_rightHandTargetRobot.rotation() = m_rightHandGraspOrientationRobot.toRotationMatrix();
         m_rightGripperTask->target(robotBodyFrame, m_rightHandTargetRobot);
     }
 
     if (m_phase == Phase::RaiseBox && completed)
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in walk to drop phase");
-        m_phase                            = Phase::WalkToDrop;
+        m_phase = Phase::WalkToDrop;
+
         Eigen::Vector3d targetRelativePose = toPose2DRobot(m_dropFromPoseWorld, ctl.robot().posW());
 
-        mc_rtc::log::info(
-                          "target: {}, robot {}, relative target: {}",
-                          m_dropFromPoseWorld.transpose(),
-                          ctl.robot().posW().translation().transpose(),
-                          targetRelativePose.transpose()
-                         );
+        // mc_rtc::log::info(
+        //                   "target: {}, robot {}, relative target: {}",
+        //                   m_dropFromPoseWorld.transpose(),
+        //                   ctl.robot().posW().translation().transpose(),
+        //                   targetRelativePose.transpose()
+        //                  );
 
         ctl.footManager_->reset();
         ctl.footManager_->walkToRelativePose(targetRelativePose);
@@ -246,6 +275,9 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::WalkToDrop && ctl.footManager_->footstepQueue().empty())
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in lower box phase");
         m_phase = Phase::LowerBox;
 
@@ -273,6 +305,9 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::LowerBox && completed)
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in drop box phase");
         m_phase = Phase::DropBox;
 
@@ -306,6 +341,9 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::DropBox && completed)
     {
+        if (!m_allowPhaseChange) return false;
+        if (m_manualPhaseChange) m_allowPhaseChange = false;
+
         mc_rtc::log::info("Now in remove hands phase");
         m_phase = Phase::RemoveHands;
 
@@ -353,8 +391,8 @@ void GraspMoveBox::teardown(mc_control::fsm::Controller &ctl_)
 Eigen::Matrix3d GraspMoveBox::toXYPlane(Eigen::Matrix3d rotationMatrix)
 {
     Eigen::Vector3d euler = mc_rbdyn::rpyFromMat(rotationMatrix);
-    euler.x() = 0.0;
-    euler.y() = 0.0;
+    euler.x()             = 0.0;
+    euler.y()             = 0.0;
     return mc_rbdyn::rpyToMat(euler);
 }
 
@@ -363,22 +401,22 @@ sva::PTransformd GraspMoveBox::toHorizonAlignedPoseWorld(
         sva::PTransformd robotPoseWorld
         )
 {
-    double           angle(mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()).z());
-    Eigen::Matrix3d  rotation = Eigen::Matrix3d::Identity();
-    rotation.block<2, 2>(0, 0) = Eigen::Rotation2Dd(angle).toRotationMatrix();
+    double          angle(mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()).z());
+    Eigen::Matrix3d rotation   = Eigen::Matrix3d::Identity();
+    rotation.block<2, 2>(0, 0) = Eigen::Rotation2Dd(-angle).toRotationMatrix();
     sva::PTransformd horizonAlignedRobotPoseWorld(rotation, robotPoseWorld.translation());
 
     sva::PTransformd horizonAlignedPoseWorld = poseRobot * horizonAlignedRobotPoseWorld;
 
-    mc_rtc::log::info(
-                      "\npR: {}-{}\nrpW: {}-{}\npHAW: {}-{}",
-                      poseRobot.translation().transpose(),
-                      mc_rbdyn::rpyFromMat(poseRobot.rotation()).transpose(),
-                      robotPoseWorld.translation().transpose(),
-                      mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()).transpose(),
-                      horizonAlignedPoseWorld.translation().transpose(),
-                      mc_rbdyn::rpyFromMat(horizonAlignedPoseWorld.rotation()).transpose()
-                     );
+    // mc_rtc::log::info(
+    //                   "\npR: {}-{}\nrpW: {}-{}\npHAW: {}-{}",
+    //                   poseRobot.translation().transpose(),
+    //                   mc_rbdyn::rpyFromMat(poseRobot.rotation()).transpose(),
+    //                   robotPoseWorld.translation().transpose(),
+    //                   mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()).transpose(),
+    //                   horizonAlignedPoseWorld.translation().transpose(),
+    //                   mc_rbdyn::rpyFromMat(horizonAlignedPoseWorld.rotation()).transpose()
+    //                  );
 
     return horizonAlignedPoseWorld;
 }
