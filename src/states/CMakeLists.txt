@@ -1,4 +1,3 @@
-add_fsm_state_simple(DemoController_Initial)
-add_fsm_state_simple(GraspMoveBox)
+add_fsm_state_simple(GoToBoxPickupPose)
 
 add_fsm_data_directory(data)

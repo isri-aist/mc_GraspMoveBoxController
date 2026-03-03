@@ -6,7 +6,7 @@
 
 #include "mc_control/Contact.h"
 
-struct GraspMoveBox : mc_control::fsm::State
+struct GoToBoxPickupPose : mc_control::fsm::State
 {
     public:
         void configure(const mc_rtc::Configuration &) override;

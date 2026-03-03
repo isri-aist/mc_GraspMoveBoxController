@@ -1,4 +1,4 @@
-#include "GraspMoveBox.h"
+#include "GoToBoxPickupPose.h"
 
 #include <Eigen/Geometry>
 #include <mc_rtc/gui/Label.h>
@@ -9,7 +9,7 @@
 #include "BaselineWalkingController/FootManager.h"
 
 
-void GraspMoveBox::configure(const mc_rtc::Configuration &config)
+void GoToBoxPickupPose::configure(const mc_rtc::Configuration &config)
 {
     mc_rtc::log::info("\n{}", config.dump(true, true));
 
@@ -41,7 +41,7 @@ void GraspMoveBox::configure(const mc_rtc::Configuration &config)
     m_allowPhaseChange = !m_manualPhaseChange;
 }
 
-void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
+void GoToBoxPickupPose::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
@@ -102,7 +102,7 @@ void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
                     .norm();
 }
 
-bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
+bool GoToBoxPickupPose::run(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
@@ -337,7 +337,7 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
     return false;
 }
 
-void GraspMoveBox::teardown(mc_control::fsm::Controller &ctl_)
+void GoToBoxPickupPose::teardown(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
@@ -359,7 +359,7 @@ void GraspMoveBox::teardown(mc_control::fsm::Controller &ctl_)
     }
 }
 
-Eigen::Matrix3d GraspMoveBox::toXYPlane(Eigen::Matrix3d rotationMatrix)
+Eigen::Matrix3d GoToBoxPickupPose::toXYPlane(Eigen::Matrix3d rotationMatrix)
 {
     Eigen::Vector3d euler = mc_rbdyn::rpyFromMat(rotationMatrix);
     euler.x()             = 0.0;
@@ -367,7 +367,7 @@ Eigen::Matrix3d GraspMoveBox::toXYPlane(Eigen::Matrix3d rotationMatrix)
     return mc_rbdyn::rpyToMat(euler);
 }
 
-sva::PTransformd GraspMoveBox::toHorizonAlignedPoseWorld(sva::PTransformd poseRobot, sva::PTransformd robotPoseWorld)
+sva::PTransformd GoToBoxPickupPose::toHorizonAlignedPoseWorld(sva::PTransformd poseRobot, sva::PTransformd robotPoseWorld)
 {
     double          angle(mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()).z());
     Eigen::Matrix3d rotation   = Eigen::Matrix3d::Identity();
@@ -389,7 +389,7 @@ sva::PTransformd GraspMoveBox::toHorizonAlignedPoseWorld(sva::PTransformd poseRo
     return horizonAlignedPoseWorld;
 }
 
-Eigen::Vector3d GraspMoveBox::toPose2DRobot(Eigen::Vector3d PoseWorld, sva::PTransformd robotPoseWorld)
+Eigen::Vector3d GoToBoxPickupPose::toPose2DRobot(Eigen::Vector3d PoseWorld, sva::PTransformd robotPoseWorld)
 {
     double          angle(mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()).z());
     Eigen::Matrix2d rotation = Eigen::Rotation2Dd(angle).toRotationMatrix();
@@ -403,4 +403,4 @@ Eigen::Vector3d GraspMoveBox::toPose2DRobot(Eigen::Vector3d PoseWorld, sva::PTra
     return relativePose;
 }
 
-EXPORT_SINGLE_STATE("GraspMoveBox", GraspMoveBox)
+EXPORT_SINGLE_STATE("GraspMoveBox", GoToBoxPickupPose)
