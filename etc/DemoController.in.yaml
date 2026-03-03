@@ -295,41 +295,46 @@ states:
           # shelf1 (at [0.6, -1.35])
           - [0.6, -1.35, 0.8, 0.45]
 
-  MoveBox0:
-    base: GraspMoveBox
-    objectName: zbox0
+  GoToBox0:
+    base: GoToBoxPickupPose
     graspFromPoseWorld: [1.26, 0.3, 0.0]
-    dropFromPoseWorld: [0.6, -0.5, -1.57]
+
+  PickupBox0:
+    base: PickupBox
+    objectName: zbox0
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
-    weight: 2000
     stiffness: 2
-    approachOffset: 0.05
-    leftGripperOffset: 0.1
-    rightGripperOffset: -0.06
-    liftHeight: 0.0 # from CHEST frame
-    liftDistance: 0.4
-    dropHeight: -0.1 # from CHEST frame
-    dropDistance: 0.4
+    weight: 2000
+    Timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    Timeout: 3.0
     manualPhaseChange: false
+    leftApproachOffset: [0.0, 0.01, 0.0]
+    rightApproachOffset: [0.0, -0.01, 0.0]
+    leftGraspOffset: [0.0, 0.1, 0.0]
+    rightGraspOffset: [0.0, -0.06, 0.0]
+    leftCarryPositionRobot: [0.4, 0.0, 0.0]
+    rightCarryPositionRobot: [0.4, 0.0, 0.0]
+    # leftHandRaisePositionRobot: [0.0, 0.0, 0.0]
+    # rightHandRaisePositionRobot: [0.0, 0.0, 0.0]
+    # leftHandGraspOrientationRobot: [0.0, 0.0, 0.0]
+    # rightHandGraspOrientationRobot: [0.0, 0.0, 0.0]
 
-  MoveBox1:
-    base: GraspMoveBox
-    objectName: zbox0
-    graspFromPoseWorld: [1.25, -0.3, 0.0]
-    dropFromPoseWorld: [1.25, -0.3, 3.14]
-    objectSurfaceRightGripper: Left
-    objectSurfaceLeftGripper: Right
-    weight: 1000
-    stiffness: 2
-    approachOffset: 0.1
-    liftHeight: 0.4
-    liftPullback: 0.0
-    completionEval: 0.1
-    completionSpeed: 1.0e-3
+  # MoveBox1:
+  #   base: GraspMoveBox
+  #   objectName: zbox0
+  #   graspFromPoseWorld: [1.25, -0.3, 0.0]
+  #   dropFromPoseWorld: [1.25, -0.3, 3.14]
+  #   objectSurfaceRightGripper: Left
+  #   objectSurfaceLeftGripper: Right
+  #   weight: 1000
+  #   stiffness: 2
+  #   approachOffset: 0.1
+  #   liftHeight: 0.4
+  #   liftPullback: 0.0
+  #   completionEval: 0.1
+  #   completionSpeed: 1.0e-3
 
   Run:
     base: Meta
@@ -337,7 +342,7 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [MoveBox0, OK, MoveBox1, Strict]
+      - [GoToBox0, OK, PickupBox0, Auto]
 
   Main:
     base: Parallel
