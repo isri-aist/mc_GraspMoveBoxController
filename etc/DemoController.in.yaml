@@ -22,15 +22,16 @@ VerboseStateFactory: false
 constraints:
   - type: contact
   - type: kinematics
-    damper: [ 0.1, 0.01, 0.5 ]
+    damper: [0.1, 0.01, 0.5]
   - type: compoundJoint
 # Collision constraint
 collisions:
-  - type: collision
-    useMinimal: true
-#  - type: collision
-#    r1: rhps1
-#    r2: desk
+  # - type: collision
+  #   useMinimal: true
+ - type: collision
+   r1: rhps1
+   r2: desk
+   useMinimal: true
 #    collisions:
 #    - body1: L_WRIST_Y_LINK
 #      body2: table
@@ -48,7 +49,7 @@ PostureTask:
 
 CoMTask:
   type: com
-  stiffness: [ 1000.0, 1000.0, 1000.0 ]
+  stiffness: [1000.0, 1000.0, 1000.0]
   weight: 1000.0
 
 BaseOrientationTask:
@@ -72,16 +73,16 @@ FootManager:
   name: FootManager
   footstepDuration: 0.9 # [sec]
   doubleSupportRatio: 0.15 # []
-  deltaTransLimit: [ 0.15, 0.1, 7.5 ] # (x [m], y [m], theta [deg])
+  deltaTransLimit: [0.15, 0.1, 7.5] # (x [m], y [m], theta [deg])
   midToFootTranss:
     Left:
-      translation: [ 0, 0.11, 0 ] # [m]
+      translation: [0, 0.11, 0] # [m]
     Right:
-      translation: [ 0, -0.11, 0 ] # [m]
+      translation: [0, -0.11, 0] # [m]
   footTaskGain:
     stiffness: 1000.0
   zmpHorizon: 2.0 # [sec]
-  zmpOffset: [ 0, -0.02, 0 ] # (positive for x-forward, y-outside, z-upward) [m]
+  zmpOffset: [0, -0.02, 0] # (positive for x-forward, y-outside, z-upward) [m]
   defaultSwingTrajType: IndHorizontalVertical
   overwriteLandingPose: false
   stopSwingTrajForTouchDownFoot: true
@@ -95,49 +96,49 @@ FootManager:
   impedanceGains:
     SingleSupport:
       damper:
-        linear: [ 300, 300, 300 ]
-        angular: [ 100, 100, 100 ]
+        linear: [300, 300, 300]
+        angular: [100, 100, 100]
       spring:
-        linear: [ 2250, 2250, 2250 ]
-        angular: [ 0, 0, 2000 ]
+        linear: [2250, 2250, 2250]
+        angular: [0, 0, 2000]
       wrench:
-        linear: [ 0, 0, 0 ]
-        angular: [ 1, 1, 0 ]
+        linear: [0, 0, 0]
+        angular: [1, 1, 0]
     DoubleSupport:
       damper:
-        linear: [ 300, 300, 1e4 ]
-        angular: [ 100, 100, 100 ]
+        linear: [300, 300, 1e4]
+        angular: [100, 100, 100]
       spring:
-        linear: [ 2250, 2250, 0 ]
-        angular: [ 0, 0, 2000 ]
+        linear: [2250, 2250, 0]
+        angular: [0, 0, 2000]
       wrench:
-        linear: [ 0, 0, 1 ]
-        angular: [ 1, 1, 0 ]
+        linear: [0, 0, 1]
+        angular: [1, 1, 0]
     Swing:
       damper:
-        linear: [ 300, 300, 300 ]
-        angular: [ 40, 40, 40 ]
+        linear: [300, 300, 300]
+        angular: [40, 40, 40]
       spring:
-        linear: [ 2250, 2250, 2250 ]
-        angular: [ 400, 400, 400 ]
+        linear: [2250, 2250, 2250]
+        angular: [400, 400, 400]
       wrench:
-        linear: [ 0, 0, 0 ]
-        angular: [ 0, 0, 0 ]
+        linear: [0, 0, 0]
+        angular: [0, 0, 0]
   VelMode:
     footstepQueueSize: 3
     enableOnlineFootstepUpdate: true
   SwingTraj:
     CubicSplineSimple:
       withdrawDurationRatio: 0.25
-      withdrawOffset: [ 0, 0, 0.015 ] # [m]
+      withdrawOffset: [0, 0, 0.015] # [m]
       approachDurationRatio: 0.25
-      approachOffset: [ 0, 0, 0.015 ] # [m]
-      swingOffset: [ 0, 0, 0.05 ] # [m]
+      approachOffset: [0, 0, 0.015] # [m]
+      swingOffset: [0, 0, 0.05] # [m]
     IndHorizontalVertical:
       withdrawDurationRatio: 0.25
       approachDurationRatio: 0.25
       verticalTopDurationRatio: 0.5
-      verticalTopOffset: [ 0, 0, 0.05 ] # [m]
+      verticalTopOffset: [0, 0, 0.05] # [m]
       tiltAngleWithdraw: 20 # [deg]
       tiltAngleApproach: 10 # [deg]
       tiltAngleWithdrawDurationRatio: 0.25
@@ -150,13 +151,13 @@ FootManager:
       withdrawDurationRatio: 0.25
       approachDurationRatio: 0.25
       verticalTopDurationRatio: 0.5
-      verticalTopOffset: [ 0, 0, 0.05 ] # [m]
+      verticalTopOffset: [0, 0, 0.05] # [m]
     LandingSearch:
       withdrawDurationRatio: 0.2
-      withdrawOffset: [ 0, 0, 0.04 ] # [m]
+      withdrawOffset: [0, 0, 0.04] # [m]
       preApproachDurationRatio: 0.25
       approachDurationRatio: 0.2
-      approachOffset: [ 0, 0, 0.04 ] # [m]
+      approachOffset: [0, 0, 0.04] # [m]
 
 CentroidalManager:
   name: CentroidalManager
@@ -170,22 +171,22 @@ CentroidalManager:
   refComZ: 0.96 # [m]
   useTargetPoseForControlRobotAnchorFrame: true
   useActualComForWrenchDist: false
-  actualComOffset: [ 0.0, 0.0, 0.0 ]
+  actualComOffset: [0.0, 0.0, 0.0]
   wrenchDistConfig:
     wrenchWeight:
-      linear: [ 1.0, 1.0, 1.0 ]
-      angular: [ 1.0, 1.0, 1.0 ]
+      linear: [1.0, 1.0, 1.0]
+      angular: [1.0, 1.0, 1.0]
     regularWeight: 1e-8
-    ridgeForceMinMax: [ 3, 1000 ] # [N]
+    ridgeForceMinMax: [3, 1000] # [N]
   dcmEstimator:
     enableDcmEstimator: false
     dcmCorrectionMode: Bias # "Bias", "Filter", or "None"
     biasDriftPerSecondStd: 0.002
     dcmMeasureErrorStd: 0.01
     zmpMeasureErrorStd: 0.005
-    biasLimit: [ 0.03, 0.03 ]
-    initDcmUncertainty: [ 0.01, 0.01 ]
-    initBiasUncertainty: [ 0.01, 0.01 ]
+    biasLimit: [0.03, 0.03]
+    initDcmUncertainty: [0.01, 0.01]
+    initBiasUncertainty: [0.01, 0.01]
 
   # PreviewControlZmp
   method: PreviewControlZmp
@@ -212,40 +213,39 @@ OverwriteConfigList:
       impedanceGains:
         SingleSupport:
           damper:
-            linear: [ 300, 300, 300 ]
-            angular: [ 40, 40, 40 ]
+            linear: [300, 300, 300]
+            angular: [40, 40, 40]
           spring:
-            linear: [ 2250, 2250, 2250 ]
-            angular: [ 400, 400, 400 ]
+            linear: [2250, 2250, 2250]
+            angular: [400, 400, 400]
           wrench:
-            linear: [ 0, 0, 0 ]
-            angular: [ 0, 0, 0 ]
+            linear: [0, 0, 0]
+            angular: [0, 0, 0]
         DoubleSupport:
           damper:
-            linear: [ 300, 300, 300 ]
-            angular: [ 40, 40, 40 ]
+            linear: [300, 300, 300]
+            angular: [40, 40, 40]
           spring:
-            linear: [ 2250, 2250, 2250 ]
-            angular: [ 400, 400, 400 ]
+            linear: [2250, 2250, 2250]
+            angular: [400, 400, 400]
           wrench:
-            linear: [ 0, 0, 0 ]
-            angular: [ 0, 0, 0 ]
+            linear: [0, 0, 0]
+            angular: [0, 0, 0]
         Swing:
           damper:
-            linear: [ 300, 300, 300 ]
-            angular: [ 40, 40, 40 ]
+            linear: [300, 300, 300]
+            angular: [40, 40, 40]
           spring:
-            linear: [ 2250, 2250, 2250 ]
-            angular: [ 400, 400, 400 ]
+            linear: [2250, 2250, 2250]
+            angular: [400, 400, 400]
           wrench:
-            linear: [ 0, 0, 0 ]
-            angular: [ 0, 0, 0 ]
+            linear: [0, 0, 0]
+            angular: [0, 0, 0]
 
     CentroidalManager:
       useActualStateForMpc: false
       enableZmpFeedback: false
       useActualComForWrenchDist: false
-
 
 # Implement some additional text states
 states:
@@ -277,16 +277,16 @@ states:
 
         r2l_action_cont_list: # [m], [rad]
           [
-            [ 0.175, 0, 0 ],
-            [ -0.125, 0, 0 ],
-            [ 0, 0.125, 0 ],
-            [ 0, -0.05, 0 ],
-            [ 0, 0, 0.2618 ],
-            [ 0, 0, -0.2618 ]
+            [0.175, 0, 0],
+            [-0.125, 0, 0],
+            [0, 0.125, 0],
+            [0, -0.05, 0],
+            [0, 0, 0.2618],
+            [0, 0, -0.2618],
           ]
 
-        r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
-        r2l_reachable_max: [ 0.1, 0.1, 0.1745 ] # [m], [rad]
+        r2l_reachable_min: [-0.1, 0.0, -0.1745] # [m], [rad]
+        r2l_reachable_max: [0.1, 0.1, 0.1745] # [m], [rad]
         rect_obstacle_list:
           # desk (at [2.0, 0.0], rotated 90 deg)
           - [2.0, 0.0, 0.45, 0.8]
@@ -298,31 +298,33 @@ states:
   MoveBox0:
     base: GraspMoveBox
     objectName: zbox0
-    graspFromPoseWorld: [ 1.25, 0.3, 0.0 ]
-    dropFromPoseWorld: [ 0.6, -0.5, -1.57 ]
+    graspFromPoseWorld: [1.26, 0.3, 0.0]
+    dropFromPoseWorld: [0.6, -0.5, -1.57]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
-    weight: 1000
-    stiffness: 50
-    approachOffset: 0.1
-    liftHeight: 0.2 # from BODY frame
+    weight: 2000
+    stiffness: 5
+    approachOffset: 0.05
+    leftGripperOffset: 0.1
+    rightGripperOffset: -0.06
+    liftHeight: 0.0 # from CHEST frame
     liftDistance: 0.4
-    dropHeight: 0.1 # from BODY frame
+    dropHeight: -0.1 # from CHEST frame
     dropDistance: 0.4
-    completionEval: 0.1
-    completionSpeed: 1.0e-3
-    Timeout: 2.0
-    manualPhaseChange: true
+    completionEval: 0.05
+    completionSpeed: 2.0e-3
+    Timeout: 3.0
+    manualPhaseChange: false
 
   MoveBox1:
     base: GraspMoveBox
     objectName: zbox0
-    graspFromPoseWorld: [ 1.25, -0.3, 0.0 ]
-    dropFromPoseWorld: [ 1.25, -0.3, 3.14 ]
+    graspFromPoseWorld: [1.25, -0.3, 0.0]
+    dropFromPoseWorld: [1.25, -0.3, 3.14]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
     weight: 1000
-    stiffness: 50
+    stiffness: 2
     approachOffset: 0.1
     liftHeight: 0.4
     liftPullback: 0.0
@@ -335,15 +337,14 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [ MoveBox0, OK, MoveBox1, Strict ]
+      - [MoveBox0, OK, MoveBox1, Strict]
 
   Main:
     base: Parallel
-    states: [ Walk, Run ]
-
+    states: [Walk, Run]
 
 transitions:
-  - [ Initial, OK, Main, Auto ]
+  - [Initial, OK, Main, Auto]
 
 # Initial state
 init: Initial
@@ -352,46 +353,70 @@ robots:
   desk:
     module: env/table
     init_pos:
-      translation: [ 2.0, 0.0, 0.0 ]
-      rotation: [ 0.0, 0.0, 1.57 ]
+      translation: [2.0, 0.0, 0.0]
+      rotation: [0.0, 0.0, 1.57]
   zbox0:
-    module: object/box
+    module: object/box # object/box_no_lid
     init_pos:
-      translation: [ 1.7, 0.3, 0.75 ]
-      rotation: [ 0.0, 1.57, 0.0 ]
+      translation: [1.6, 0.3, 0.8]
+      rotation: [0.0, 1.57, 0.0]
   zbox1:
-    module: object/box
+    module: object/box # object/box_no_lid
     init_pos:
-      translation: [ 1.7, -0.3, 0.75 ]
-      rotation: [ 0.0, 1.57, 0.0 ]
+      translation: [1.6, -0.3, 0.8]
+      rotation: [0.0, 1.57, 0.0]
   shelf0:
     module: env/table
     init_pos:
-      translation: [ 0.6, 1.0, 0.0 ]
+      translation: [0.6, 1.0, 0.0]
   shelf1:
     module: env/table
     init_pos:
-      translation: [ 0.6, -1.35, 0.0 ]
+      translation: [0.6, -1.35, 0.0]
 
   ground:
     module: env/ground
 
   rhps1:
     CoMTask:
-      activeJoints: [
-        "Root",
-        "L_CROTCH_Y", "L_CROTCH_R", "L_CROTCH_P", "L_KNEE_P", "L_ANKLE_R", "L_ANKLE_P",
-        "R_CROTCH_Y", "R_CROTCH_R", "R_CROTCH_P", "R_KNEE_P", "R_ANKLE_R", "R_ANKLE_P" ]
+      activeJoints:
+        [
+          "Root",
+          "L_CROTCH_Y",
+          "L_CROTCH_R",
+          "L_CROTCH_P",
+          "L_KNEE_P",
+          "L_ANKLE_R",
+          "L_ANKLE_P",
+          "R_CROTCH_Y",
+          "R_CROTCH_R",
+          "R_CROTCH_P",
+          "R_KNEE_P",
+          "R_ANKLE_R",
+          "R_ANKLE_P",
+        ]
 
     BaseOrientationTask:
       frame: CHEST_P_LINK
 
   jvrc1:
     CoMTask:
-      activeJoints: [
-        "Root",
-        "R_HIP_Y", "R_HIP_R", "R_HIP_P", "R_KNEE", "R_ANKLE_P", "R_ANKLE_R",
-        "L_HIP_Y", "L_HIP_R", "L_HIP_P", "L_KNEE", "L_ANKLE_P", "L_ANKLE_R" ]
+      activeJoints:
+        [
+          "Root",
+          "R_HIP_Y",
+          "R_HIP_R",
+          "R_HIP_P",
+          "R_KNEE",
+          "R_ANKLE_P",
+          "R_ANKLE_R",
+          "L_HIP_Y",
+          "L_HIP_R",
+          "L_HIP_P",
+          "L_KNEE",
+          "L_ANKLE_P",
+          "L_ANKLE_R",
+        ]
 
     BaseOrientationTask:
       frame: WAIST_R_S

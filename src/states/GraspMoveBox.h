@@ -62,6 +62,8 @@ struct GraspMoveBox : mc_control::fsm::State
         double m_StartTime          = 0.0;
         double m_Timeout            = 5.0;
         double m_approachOffset     = 0.0;
+        double m_leftGripperOffset  = 0.0;
+        double m_rightGripperOffset = 0.0;
         double m_liftHeight         = 0.1;
         double m_liftDistance       = 0.0;
         double m_dropHeight         = 0.1;
