@@ -1,6 +1,7 @@
 #include "GraspMoveBox.h"
 
 #include <Eigen/Geometry>
+#include <mc_rtc/gui/Label.h>
 #include <mc_tasks/RelativeEndEffectorTask.h>
 
 #include "../DemoController.h"
@@ -10,6 +11,8 @@
 
 void GraspMoveBox::configure(const mc_rtc::Configuration &config)
 {
+    mc_rtc::log::info("\n{}", config.dump(true, true));
+
     config("objectName", m_objectName);
     config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
@@ -40,17 +43,40 @@ void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    for (const auto &joint : ctl.robot().mb().joints()) mc_rtc::log::info("{}", joint.name());
+    // for (const auto &joint : ctl.robot().mb().joints()) mc_rtc::log::info("{}", joint.name());
 
     ctl.gui()->addElement({"GraspMoveBox"}, mc_rtc::gui::Button("Next Phase", [this] { m_allowPhaseChange = true; }));
 
     m_leftGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
             "LeftHandWrench", ctl.robots(), 0, "CHEST_Y_LINK", m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
+    ctl.gui()->addElement(
+            {"GraspMoveBox"},
+            mc_rtc::gui::Label(
+                    "Left gripper distance to box and speed",
+                    [this]
+                    {
+                        std::string data = std::to_string(m_leftGripperTask->eval().norm());
+                        data += "\t";
+                        data += std::to_string(m_leftGripperTask->speed().norm());
+                        return data;
+                    }));
+
 
     m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
             "RightHandWrench", ctl.robots(), 0, "CHEST_Y_LINK", m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
+    ctl.gui()->addElement(
+            {"GraspMoveBox"},
+            mc_rtc::gui::Label(
+                    "Right gripper distance to box and speed",
+                    [this]
+                    {
+                        std::string data = std::to_string(m_rightGripperTask->eval().norm());
+                        data += "\t";
+                        data += std::to_string(m_rightGripperTask->speed().norm());
+                        return data;
+                    }));
 
     m_leftContact = mc_control::Contact(
             ctl.robot().name(),
@@ -136,7 +162,11 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
              m_rightGripperTask->eval().norm() < m_completionEval &&
              m_rightGripperTask->speed().norm() < m_completionSpeed);
 
-    if (m_StartTime + m_Timeout < ctl.t()) completed = true;
+    if (m_StartTime + m_Timeout < ctl.t())
+    {
+        mc_rtc::log::info("raise hands timed out");
+        completed = true;
+    }
 
     if (m_phase == Phase::RaiseHands && completed)
     {
@@ -221,13 +251,6 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
         Eigen::Vector3d targetRelativePose = toPose2DRobot(m_dropFromPoseWorld, ctl.robot().posW());
 
-        // mc_rtc::log::info(
-        //                   "target: {}, robot {}, relative target: {}",
-        //                   m_dropFromPoseWorld.transpose(),
-        //                   ctl.robot().posW().translation().transpose(),
-        //                   targetRelativePose.transpose()
-        //                  );
-
         ctl.footManager_->reset();
         ctl.footManager_->walkToRelativePose(targetRelativePose);
 
@@ -308,6 +331,11 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 void GraspMoveBox::teardown(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
+
+    ctl.gui()->removeElement({"GraspMoveBox"}, "Next Phase");
+    ctl.gui()->removeElement({"GraspMoveBox"}, "Left gripper distance to box and speed");
+    ctl.gui()->removeElement({"GraspMoveBox"}, "Right gripper distance to box and speed");
+
 
     ctl.solver().removeTask(m_leftGripperTask);
     ctl.solver().removeTask(m_rightGripperTask);
