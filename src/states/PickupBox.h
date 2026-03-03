@@ -62,9 +62,12 @@ struct PickupBox : mc_control::fsm::State
         Eigen::Vector3d m_leftCarryPositionRobot;
         Eigen::Vector3d m_rightCarryPositionRobot;
 
-        Eigen::Vector3d m_leftHandRaisePositionRobot  = {0.0, 0.25, 0.0};
-        Eigen::Vector3d m_rightHandRaisePositionRobot = {0.0, -0.25, 0.0};
+        Eigen::Quaterniond m_leftCarryOrientationRobot;
+        Eigen::Quaterniond m_rightCarryOrientationRobot;
 
-        Eigen::Quaterniond m_leftHandGraspOrientationRobot  = {0.5, 0.5, 0.5, -0.5};
-        Eigen::Quaterniond m_rightHandGraspOrientationRobot = {0.5, -0.5, 0.5, 0.5};
+        Eigen::Vector3d m_leftRaisePositionRobot  = {0.0, 0.25, 0.0};
+        Eigen::Vector3d m_rightRaisePositionRobot = {0.0, -0.25, 0.0};
+
+        Eigen::Quaterniond m_leftRaiseOrientationRobot  = {0.5, 0.5, 0.5, -0.5};
+        Eigen::Quaterniond m_rightRaiseOrientationRobot = {0.5, -0.5, 0.5, 0.5};
 };

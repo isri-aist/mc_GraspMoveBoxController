@@ -27,10 +27,12 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("rightGraspOffset", m_rightGraspOffset);
     config("leftCarryPositionRobot", m_leftCarryPositionRobot);
     config("rightCarryPositionRobot", m_rightCarryPositionRobot);
-    config("leftHandRaisePositionRobot", m_leftHandRaisePositionRobot);
-    config("rightHandRaisePositionRobot", m_rightHandRaisePositionRobot);
-    config("leftHandGraspOrientationRobot", m_leftHandGraspOrientationRobot);
-    config("rightHandGraspOrientationRobot", m_rightHandGraspOrientationRobot);
+    config("leftCarryOrientationRobot", m_leftCarryOrientationRobot);
+    config("rightCarryOrientationRobot", m_rightCarryOrientationRobot);
+    config("leftRaisePositionRobot", m_leftRaisePositionRobot);
+    config("rightRaisePositionRobot", m_rightRaisePositionRobot);
+    config("leftRaiseOrientationRobot", m_leftRaiseOrientationRobot);
+    config("rightRaiseOrientationRobot", m_rightRaiseOrientationRobot);
 
     m_contactAdded     = false;
     m_allowPhaseChange = !m_manualPhaseChange;
@@ -44,9 +46,24 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
             std::make_shared<mc_tasks::TransformTask>("LeftHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
 
+    // todo: *ArmJoints, quaternion orientation and orientation active joint must be loaded as config
+    m_leftElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
+            ctl.robot().frame("L_SHOULDER_Y_LINK"), m_stiffness, m_weight / 2);
+    m_leftElbowOrientationTask->selectActiveJoints(ctl.solver(), {"L_SHOULDER_Y"});
+    m_leftElbowOrientationTask->orientation(Eigen::Quaterniond(0.99144486, 0.0, -0.13052619, 0.).toRotationMatrix());
+
+    ctl.solver().addTask(m_leftElbowOrientationTask);
+
     m_rightGripperTask =
             std::make_shared<mc_tasks::TransformTask>("RightHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
+
+    m_rightElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
+            ctl.robot().frame("R_SHOULDER_Y_LINK"), m_stiffness, m_weight / 2);
+    m_rightElbowOrientationTask->selectActiveJoints(ctl.solver(), {"R_SHOULDER_Y"});
+    m_rightElbowOrientationTask->orientation(Eigen::Quaterniond(0.99144486, 0.0, 0.13052619, 0.).toRotationMatrix());
+
+    ctl.solver().addTask(m_rightElbowOrientationTask);
 
     m_leftContact = mc_control::Contact(
             ctl.robot().name(),
@@ -123,13 +140,11 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         m_StartTime = ctl.t();
 
         m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_leftHandGraspOrientationRobot, m_leftHandRaisePositionRobot});
+                ctl.robot().frame(m_robotReferenceFrame), {m_leftRaiseOrientationRobot, m_leftRaisePositionRobot});
         ctl.solver().addTask(m_leftGripperTask);
 
         m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightHandGraspOrientationRobot, m_rightHandRaisePositionRobot});
+                ctl.robot().frame(m_robotReferenceFrame), {m_rightRaiseOrientationRobot, m_rightRaisePositionRobot});
         ctl.solver().addTask(m_rightGripperTask);
 
         return false;
@@ -161,12 +176,12 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         m_leftGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceLeftGripper,
-                {m_leftHandGraspOrientationRobot, (m_leftApproachOffset + m_leftGraspOffset).eval()});
+                {m_leftCarryOrientationRobot, (m_leftApproachOffset + m_leftGraspOffset).eval()});
 
         m_rightGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
-                {m_rightHandGraspOrientationRobot, (m_rightApproachOffset + m_rightGraspOffset).eval()});
+                {m_rightCarryOrientationRobot, (m_rightApproachOffset + m_rightGraspOffset).eval()});
 
         return false;
     }
@@ -182,12 +197,12 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         m_leftGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceLeftGripper,
-                {m_leftHandGraspOrientationRobot, m_leftGraspOffset});
+                {m_leftCarryOrientationRobot, m_leftGraspOffset});
 
         m_rightGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
-                {m_rightHandGraspOrientationRobot, m_rightGraspOffset});
+                {m_rightCarryOrientationRobot, m_rightGraspOffset});
 
         return false;
     }
@@ -204,12 +219,11 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         ctl.addContact(m_rightContact);
         m_contactAdded = true;
 
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightHandGraspOrientationRobot, m_rightCarryPositionRobot});
-
         m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame), {m_leftHandGraspOrientationRobot, m_leftCarryPositionRobot});
+                ctl.robot().frame(m_robotReferenceFrame), {m_leftCarryOrientationRobot, m_leftCarryPositionRobot});
+
+        m_rightGripperTask->target(
+                ctl.robot().frame(m_robotReferenceFrame), {m_rightCarryOrientationRobot, m_rightCarryPositionRobot});
 
         return false;
     }
@@ -235,7 +249,7 @@ void PickupBox::teardown(mc_control::fsm::Controller &ctl_)
     if (m_contactAdded && m_removeContactAtTeardown)
     {
         ctl.removeContact(m_leftContact);
-        ctl.removeContact(m_leftContact);
+        ctl.removeContact(m_rightContact);
         m_contactAdded = false;
     }
 
