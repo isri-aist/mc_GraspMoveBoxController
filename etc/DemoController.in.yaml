@@ -297,7 +297,7 @@ states:
 
   GoToBox0:
     base: GoToBoxPickupPose
-    graspFromPoseWorld: [1.25, 0.31, 0.0]
+    pickupPoseWorld: [1.25, 0.31, 0.0]
 
   PickupBox0:
     base: PickupBox
@@ -310,16 +310,18 @@ states:
     completionEval: 0.05
     completionSpeed: 2.0e-3
     manualPhaseChange: false
-    leftApproachOffset: [0.0, 0.0, 0.05]
-    rightApproachOffset: [ 0.0, 0.0, 0.05]
-    leftGraspOffset: [0.0, 0.0, 0.1]
-    rightGraspOffset: [0.0, 0.0, 0.04]
-    leftCarryPositionRobot: [0.2, 0.0, 0.0] # y value is automatically set with box width
-    rightCarryPositionRobot: [0.2, 0.0, 0.0]
-    leftCarryOrientationRobot: [0.70710678, 0., 0.70710678, 0.]
-    rightCarryOrientationRobot: [0.70710678, 0., 0.70710678, 0.]
+    approachOffset: 0.05
+    leftGripperContactOffset: 0.1
+    rightGripperContactOffset: 0.06
     leftRaisePositionRobot: [-0.05, 0.35, -0.0]
     rightRaisePositionRobot: [-0.05, -0.35, -0.0]
+    leftCarryPositionRobot: [0.3, 0.0, -0.1] # y value is automatically set with box width
+    rightCarryPositionRobot: [0.3, 0.0, -0.1]
+    leftOrientationRobot: [0.5, 0.5, 0.5, -0.5]
+    rightOrientationRobot: [0.5, -0.5, 0.5, 0.5]
+    leftOrientationBox: [0.70710678, 0., 0.70710678, 0.]
+    rightOrientationBox: [0.70710678, 0., 0.70710678, 0.]
+
 
   # MoveBox1:
   #   base: GraspMoveBox

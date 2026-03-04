@@ -37,17 +37,20 @@ struct PickupBox : mc_control::fsm::State
 
         Phase m_phase = Phase::None;
 
-        double m_stiffness           = 2.0;
-        double m_weight              = 2000.0;
-        double m_startTime           = 0.0;
-        double m_timeout             = 5.0;
-        double m_completionEval      = 0.05;
-        double m_completionSpeed     = 1e-3;
-        double m_boxHalfWidth        = 0.0;
-        double m_leftShoulderZAngle  = -5.0 * M_PI / 180.0;
-        double m_rightShoulderZAngle = 5.0 * M_PI / 180.0;
-        double m_crouchOffset        = 0.05;
-        double m_refComZ;
+        double m_stiffness                 = 2.0;
+        double m_weight                    = 2000.0;
+        double m_startTime                 = 0.0;
+        double m_timeout                   = 5.0;
+        double m_completionEval            = 0.05;
+        double m_completionSpeed           = 1e-3;
+        double m_boxHalfWidth              = 0.0;
+        double m_leftShoulderZAngle        = -5.0 * M_PI / 180.0;
+        double m_rightShoulderZAngle       = 5.0 * M_PI / 180.0;
+        double m_crouchOffset              = 0.05;
+        double m_leftGripperContactOffset  = 0.0;
+        double m_rightGripperContactOffset = 0.0;
+        double m_approachOffset            = 0.0;
+        double m_refComZ                   = 0.0;
 
         bool m_contactAdded            = false;
         bool m_removeContactAtTeardown = false;
@@ -57,21 +60,24 @@ struct PickupBox : mc_control::fsm::State
         mc_control::Contact m_leftContact{};
         mc_control::Contact m_rightContact{};
 
-        Eigen::Vector3d m_leftApproachOffset;
-        Eigen::Vector3d m_rightApproachOffset;
+        Eigen::Vector3d m_leftGraspOffsetBox;
+        Eigen::Vector3d m_rightGraspOffsetBox;
 
-        Eigen::Vector3d m_leftGraspOffset;
-        Eigen::Vector3d m_rightGraspOffset;
+        Eigen::Vector3d m_leftApproachOffsetBox;
+        Eigen::Vector3d m_rightApproachOffsetBox;
+
+        Eigen::Quaterniond m_leftOrientationBox;
+        Eigen::Quaterniond m_rightOrientationBox;
+
+        Eigen::Vector3d m_leftGraspOffsetRobot;
+        Eigen::Vector3d m_rightGraspOffsetRobot;
 
         Eigen::Vector3d m_leftCarryPositionRobot;
         Eigen::Vector3d m_rightCarryPositionRobot;
 
-        Eigen::Quaterniond m_leftCarryOrientationRobot;
-        Eigen::Quaterniond m_rightCarryOrientationRobot;
+        Eigen::Vector3d m_leftRaisePositionRobot;
+        Eigen::Vector3d m_rightRaisePositionRobot;
 
-        Eigen::Vector3d m_leftRaisePositionRobot  = {0.0, 0.25, 0.0};
-        Eigen::Vector3d m_rightRaisePositionRobot = {0.0, -0.25, 0.0};
-
-        Eigen::Quaterniond m_leftRaiseOrientationRobot  = {0.5, 0.5, 0.5, -0.5};
-        Eigen::Quaterniond m_rightRaiseOrientationRobot = {0.5, -0.5, 0.5, 0.5};
+        Eigen::Quaterniond m_leftOrientationRobot;
+        Eigen::Quaterniond m_rightOrientationRobot;
 };
