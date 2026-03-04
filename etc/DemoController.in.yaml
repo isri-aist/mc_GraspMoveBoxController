@@ -28,10 +28,10 @@ constraints:
 collisions:
   - type: collision
     useMinimal: true
-  - type: collision
-    r1: rhps1
-    r2: desk
-    useMinimal: true
+#  - type: collision
+#    r1: rhps1
+#    r2: desk
+#    useMinimal: true
 #    collisions:
 #    - body1: L_WRIST_Y_LINK
 #      body2: table
@@ -322,6 +322,18 @@ states:
     leftOrientationBox: [0.70710678, 0., 0.70710678, 0.]
     rightOrientationBox: [0.70710678, 0., 0.70710678, 0.]
 
+  GoToDrop0:
+    base: GoToBoxDropoffPose
+    dropoffPoseWorld: [0.6, -0.5, -1.57]
+    stiffness: 2
+    weight: 4000
+    objectName: zbox0
+    objectSurfaceLeftGripper: Right
+    objectSurfaceRightGripper: Left
+    leftPositionRobot: [0.3, 0.0, -0.1] # y value is automatically set with box width
+    rightPositionRobot: [0.3, 0.0, -0.1]
+    leftOrientationRobot: [0.5, 0.5, 0.5, -0.5]
+    rightOrientationRobot: [0.5, -0.5, 0.5, 0.5]
 
   # MoveBox1:
   #   base: GraspMoveBox
@@ -345,6 +357,7 @@ states:
     ResetPostures: false
     transitions:
       - [GoToBox0, OK, PickupBox0, Auto]
+      - [PickupBox0, OK, GoToDrop0, Auto]
 
   Main:
     base: Parallel

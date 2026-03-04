@@ -1,0 +1,89 @@
+#include "GoToBoxDropoffPose.h"
+#include <mc_control/Contact.h>
+#include <mc_rtc/logging.h>
+#include "../DemoController.h"
+#include "./utils.h"
+
+void GoToBoxDropoffPose::configure(const mc_rtc::Configuration & config)
+{
+    mc_rtc::log::info("\n{}", config.dump(true, true));
+
+    config("robotReferenceFrame", m_robotReferenceFrame);
+    config("objectName", m_objectName);
+    config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
+    config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
+    config("stiffness", m_stiffness);
+    config("weight", m_weight);
+    config("dropoffPoseWorld", m_destinationPoseWorld);
+    config("leftPositionRobot", m_leftPositionRobot);
+    config("rightPositionRobot", m_rightPositionRobot);
+    config("leftOrientationRobot", m_leftOrientationRobot);
+    config("rightOrientationRobot", m_rightOrientationRobot);
+}
+
+void GoToBoxDropoffPose::start(mc_control::fsm::Controller & ctl_)
+{
+    auto & ctl = static_cast<DemoController&>(ctl_);
+
+    bool hasLeftContact = false, hasRightContact = false;
+
+    for (const auto & c : ctl.contacts())
+    {
+        mc_rtc::log::info("contact: {}:{} <-> {}:{}", c.r1->c_str(), c.r1Surface, c.r2->c_str(), c.r2Surface);
+
+        if (c.r1 == ctl.robot().name() && c.r1Surface == "LeftHandWrench" && c.r2 == m_objectName &&
+            c.r2Surface == m_objectSurfaceLeftGripper)
+            hasLeftContact = true;
+
+        if (c.r1 == ctl.robot().name() && c.r1Surface == "RightHandWrench" && c.r2 == m_objectName &&
+            c.r2Surface == m_objectSurfaceRightGripper)
+            hasRightContact = true;
+    }
+    if (!hasLeftContact || !hasRightContact) mc_rtc::log::error_and_throw("Didn't find box contacts");
+
+    const double boxHalfWidth = 0.5 *
+            (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
+                ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
+           .norm();
+
+    m_leftPositionRobot.y()  = boxHalfWidth;
+    m_rightPositionRobot.y() = -boxHalfWidth;
+
+    m_leftGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
+                                                                            "LeftHandWrench",
+                                                                            ctl.robots(),
+                                                                            0,
+                                                                            m_robotReferenceFrame,
+                                                                            m_stiffness,
+                                                                            m_weight
+                                                                           );
+    m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
+    m_leftGripperTask->set_ef_pose({m_leftOrientationRobot, m_leftPositionRobot});
+    ctl.solver().addTask(m_leftGripperTask);
+
+    m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
+                                                                             "RightHandWrench",
+                                                                             ctl.robots(),
+                                                                             0,
+                                                                             m_robotReferenceFrame,
+                                                                             m_stiffness,
+                                                                             m_weight
+                                                                            );
+    m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
+    m_rightGripperTask->set_ef_pose({m_rightOrientationRobot, m_rightPositionRobot});
+    ctl.solver().addTask(m_rightGripperTask);
+
+    GoTo::start(ctl_);
+}
+
+bool GoToBoxDropoffPose::run(mc_control::fsm::Controller & ctl_)
+{
+    return GoTo::run(ctl_);
+}
+
+void GoToBoxDropoffPose::teardown(mc_control::fsm::Controller & ctl_)
+{
+    GoTo::teardown(ctl_);
+}
+
+EXPORT_SINGLE_STATE("GoToBoxDropoffPose", GoToBoxDropoffPose)
