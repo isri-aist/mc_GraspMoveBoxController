@@ -22,7 +22,7 @@ VerboseStateFactory: false
 constraints:
   - type: contact
   - type: kinematics
-    damper: [0.1, 0.01, 0.5]
+    damper: [ 0.1, 0.01, 0.5 ]
   - type: compoundJoint
 # Collision constraint
 collisions:
@@ -49,7 +49,7 @@ PostureTask:
 
 CoMTask:
   type: com
-  stiffness: [1000.0, 1000.0, 1000.0]
+  stiffness: [ 1000.0, 1000.0, 1000.0 ]
   weight: 1000.0
 
 BaseOrientationTask:
@@ -73,16 +73,16 @@ FootManager:
   name: FootManager
   footstepDuration: 0.9 # [sec]
   doubleSupportRatio: 0.15 # []
-  deltaTransLimit: [0.15, 0.1, 7.5] # (x [m], y [m], theta [deg])
+  deltaTransLimit: [ 0.15, 0.1, 7.5 ] # (x [m], y [m], theta [deg])
   midToFootTranss:
     Left:
-      translation: [0, 0.11, 0] # [m]
+      translation: [ 0, 0.11, 0 ] # [m]
     Right:
-      translation: [0, -0.11, 0] # [m]
+      translation: [ 0, -0.11, 0 ] # [m]
   footTaskGain:
     stiffness: 1000.0
   zmpHorizon: 2.0 # [sec]
-  zmpOffset: [0, -0.02, 0] # (positive for x-forward, y-outside, z-upward) [m]
+  zmpOffset: [ 0, -0.02, 0 ] # (positive for x-forward, y-outside, z-upward) [m]
   defaultSwingTrajType: IndHorizontalVertical
   overwriteLandingPose: false
   stopSwingTrajForTouchDownFoot: true
@@ -96,49 +96,49 @@ FootManager:
   impedanceGains:
     SingleSupport:
       damper:
-        linear: [300, 300, 300]
-        angular: [100, 100, 100]
+        linear: [ 300, 300, 300 ]
+        angular: [ 100, 100, 100 ]
       spring:
-        linear: [2250, 2250, 2250]
-        angular: [0, 0, 2000]
+        linear: [ 2250, 2250, 2250 ]
+        angular: [ 0, 0, 2000 ]
       wrench:
-        linear: [0, 0, 0]
-        angular: [1, 1, 0]
+        linear: [ 0, 0, 0 ]
+        angular: [ 1, 1, 0 ]
     DoubleSupport:
       damper:
-        linear: [300, 300, 1e4]
-        angular: [100, 100, 100]
+        linear: [ 300, 300, 1e4 ]
+        angular: [ 100, 100, 100 ]
       spring:
-        linear: [2250, 2250, 0]
-        angular: [0, 0, 2000]
+        linear: [ 2250, 2250, 0 ]
+        angular: [ 0, 0, 2000 ]
       wrench:
-        linear: [0, 0, 1]
-        angular: [1, 1, 0]
+        linear: [ 0, 0, 1 ]
+        angular: [ 1, 1, 0 ]
     Swing:
       damper:
-        linear: [300, 300, 300]
-        angular: [40, 40, 40]
+        linear: [ 300, 300, 300 ]
+        angular: [ 40, 40, 40 ]
       spring:
-        linear: [2250, 2250, 2250]
-        angular: [400, 400, 400]
+        linear: [ 2250, 2250, 2250 ]
+        angular: [ 400, 400, 400 ]
       wrench:
-        linear: [0, 0, 0]
-        angular: [0, 0, 0]
+        linear: [ 0, 0, 0 ]
+        angular: [ 0, 0, 0 ]
   VelMode:
     footstepQueueSize: 3
     enableOnlineFootstepUpdate: true
   SwingTraj:
     CubicSplineSimple:
       withdrawDurationRatio: 0.25
-      withdrawOffset: [0, 0, 0.015] # [m]
+      withdrawOffset: [ 0, 0, 0.015 ] # [m]
       approachDurationRatio: 0.25
-      approachOffset: [0, 0, 0.015] # [m]
-      swingOffset: [0, 0, 0.05] # [m]
+      approachOffset: [ 0, 0, 0.015 ] # [m]
+      swingOffset: [ 0, 0, 0.05 ] # [m]
     IndHorizontalVertical:
       withdrawDurationRatio: 0.25
       approachDurationRatio: 0.25
       verticalTopDurationRatio: 0.5
-      verticalTopOffset: [0, 0, 0.05] # [m]
+      verticalTopOffset: [ 0, 0, 0.05 ] # [m]
       tiltAngleWithdraw: 20 # [deg]
       tiltAngleApproach: 10 # [deg]
       tiltAngleWithdrawDurationRatio: 0.25
@@ -151,13 +151,13 @@ FootManager:
       withdrawDurationRatio: 0.25
       approachDurationRatio: 0.25
       verticalTopDurationRatio: 0.5
-      verticalTopOffset: [0, 0, 0.05] # [m]
+      verticalTopOffset: [ 0, 0, 0.05 ] # [m]
     LandingSearch:
       withdrawDurationRatio: 0.2
-      withdrawOffset: [0, 0, 0.04] # [m]
+      withdrawOffset: [ 0, 0, 0.04 ] # [m]
       preApproachDurationRatio: 0.25
       approachDurationRatio: 0.2
-      approachOffset: [0, 0, 0.04] # [m]
+      approachOffset: [ 0, 0, 0.04 ] # [m]
 
 CentroidalManager:
   name: CentroidalManager
@@ -171,22 +171,22 @@ CentroidalManager:
   refComZ: 0.96 # [m]
   useTargetPoseForControlRobotAnchorFrame: true
   useActualComForWrenchDist: false
-  actualComOffset: [0.0, 0.0, 0.0]
+  actualComOffset: [ 0.0, 0.0, 0.0 ]
   wrenchDistConfig:
     wrenchWeight:
-      linear: [1.0, 1.0, 1.0]
-      angular: [1.0, 1.0, 1.0]
+      linear: [ 1.0, 1.0, 1.0 ]
+      angular: [ 1.0, 1.0, 1.0 ]
     regularWeight: 1e-8
-    ridgeForceMinMax: [3, 1000] # [N]
+    ridgeForceMinMax: [ 3, 1000 ] # [N]
   dcmEstimator:
     enableDcmEstimator: false
     dcmCorrectionMode: Bias # "Bias", "Filter", or "None"
     biasDriftPerSecondStd: 0.002
     dcmMeasureErrorStd: 0.01
     zmpMeasureErrorStd: 0.005
-    biasLimit: [0.03, 0.03]
-    initDcmUncertainty: [0.01, 0.01]
-    initBiasUncertainty: [0.01, 0.01]
+    biasLimit: [ 0.03, 0.03 ]
+    initDcmUncertainty: [ 0.01, 0.01 ]
+    initBiasUncertainty: [ 0.01, 0.01 ]
 
   # PreviewControlZmp
   method: PreviewControlZmp
@@ -213,34 +213,34 @@ OverwriteConfigList:
       impedanceGains:
         SingleSupport:
           damper:
-            linear: [300, 300, 300]
-            angular: [40, 40, 40]
+            linear: [ 300, 300, 300 ]
+            angular: [ 40, 40, 40 ]
           spring:
-            linear: [2250, 2250, 2250]
-            angular: [400, 400, 400]
+            linear: [ 2250, 2250, 2250 ]
+            angular: [ 400, 400, 400 ]
           wrench:
-            linear: [0, 0, 0]
-            angular: [0, 0, 0]
+            linear: [ 0, 0, 0 ]
+            angular: [ 0, 0, 0 ]
         DoubleSupport:
           damper:
-            linear: [300, 300, 300]
-            angular: [40, 40, 40]
+            linear: [ 300, 300, 300 ]
+            angular: [ 40, 40, 40 ]
           spring:
-            linear: [2250, 2250, 2250]
-            angular: [400, 400, 400]
+            linear: [ 2250, 2250, 2250 ]
+            angular: [ 400, 400, 400 ]
           wrench:
-            linear: [0, 0, 0]
-            angular: [0, 0, 0]
+            linear: [ 0, 0, 0 ]
+            angular: [ 0, 0, 0 ]
         Swing:
           damper:
-            linear: [300, 300, 300]
-            angular: [40, 40, 40]
+            linear: [ 300, 300, 300 ]
+            angular: [ 40, 40, 40 ]
           spring:
-            linear: [2250, 2250, 2250]
-            angular: [400, 400, 400]
+            linear: [ 2250, 2250, 2250 ]
+            angular: [ 400, 400, 400 ]
           wrench:
-            linear: [0, 0, 0]
-            angular: [0, 0, 0]
+            linear: [ 0, 0, 0 ]
+            angular: [ 0, 0, 0 ]
 
     CentroidalManager:
       useActualStateForMpc: false
@@ -277,27 +277,27 @@ states:
 
         r2l_action_cont_list: # [m], [rad]
           [
-            [0.175, 0, 0],
-            [-0.125, 0, 0],
-            [0, 0.125, 0],
-            [0, -0.05, 0],
-            [0, 0, 0.2618],
-            [0, 0, -0.2618],
+            [ 0.175, 0, 0 ],
+            [ -0.125, 0, 0 ],
+            [ 0, 0.125, 0 ],
+            [ 0, -0.05, 0 ],
+            [ 0, 0, 0.2618 ],
+            [ 0, 0, -0.2618 ],
           ]
 
-        r2l_reachable_min: [-0.1, 0.0, -0.1745] # [m], [rad]
-        r2l_reachable_max: [0.1, 0.1, 0.1745] # [m], [rad]
+        r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
+        r2l_reachable_max: [ 0.1, 0.1, 0.1745 ] # [m], [rad]
         rect_obstacle_list:
           # desk (at [2.0, 0.0], rotated 90 deg)
-          - [2.0, 0.0, 0.45, 0.8]
+          - [ 2.0, 0.0, 0.45, 0.8 ]
           # shelf0 (at [0.6, 1.0])
-          - [0.6, 1.0, 0.8, 0.45]
+          - [ 0.6, 1.0, 0.8, 0.45 ]
           # shelf1 (at [0.6, -1.35])
-          - [0.6, -1.35, 0.8, 0.45]
+          - [ 0.6, -1.35, 0.8, 0.45 ]
 
   GoToBox0:
     base: GoToBoxPickupPose
-    pickupPoseWorld: [1.25, 0.31, 0.0]
+    pickupPoseWorld: [ 1.25, 0.31, 0.0 ]
 
   PickupBox0:
     base: PickupBox
@@ -313,27 +313,27 @@ states:
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
-    leftRaisePositionRobot: [-0.05, 0.35, -0.0]
-    rightRaisePositionRobot: [-0.05, -0.35, -0.0]
-    leftCarryPositionRobot: [0.3, 0.0, -0.1] # y value is automatically set with box width
-    rightCarryPositionRobot: [0.3, 0.0, -0.1]
-    leftOrientationRobot: [0.5, 0.5, 0.5, -0.5]
-    rightOrientationRobot: [0.5, -0.5, 0.5, 0.5]
-    leftOrientationBox: [0.70710678, 0., 0.70710678, 0.]
-    rightOrientationBox: [0.70710678, 0., 0.70710678, 0.]
+    leftRaisePositionRobot: [ -0.05, 0.35, -0.0 ]
+    rightRaisePositionRobot: [ -0.05, -0.35, -0.0 ]
+    leftCarryPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
+    rightCarryPositionRobot: [ 0.3, 0.0, -0.1 ]
+    leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
+    rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
+    leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
+    rightOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
 
   GoToDrop0:
     base: GoToBoxDropoffPose
-    dropoffPoseWorld: [0.6, -0.5, -1.57]
+    dropoffPoseWorld: [ 0.6, -0.5, -1.57 ]
     stiffness: 2
     weight: 4000
     objectName: zbox0
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
-    leftPositionRobot: [0.3, 0.0, -0.1] # y value is automatically set with box width
-    rightPositionRobot: [0.3, 0.0, -0.1]
-    leftOrientationRobot: [0.5, 0.5, 0.5, -0.5]
-    rightOrientationRobot: [0.5, -0.5, 0.5, 0.5]
+    leftPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
+    rightPositionRobot: [ 0.3, 0.0, -0.1 ]
+    leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
+    rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
 
   # MoveBox1:
   #   base: GraspMoveBox
@@ -356,15 +356,15 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [GoToBox0, OK, PickupBox0, Auto]
-      - [PickupBox0, OK, GoToDrop0, Auto]
+      - [ GoToBox0, OK, PickupBox0, Auto ]
+      - [ PickupBox0, OK, GoToDrop0, Auto ]
 
   Main:
     base: Parallel
-    states: [Walk, Run]
+    states: [ Walk, Run ]
 
 transitions:
-  - [Initial, OK, Main, Auto]
+  - [ Initial, OK, Main, Auto ]
 
 # Initial state
 init: Initial
@@ -373,26 +373,26 @@ robots:
   desk:
     module: env/table
     init_pos:
-      translation: [2.0, 0.0, 0.0]
-      rotation: [0.0, 0.0, 1.57]
+      translation: [ 2.0, 0.0, 0.0 ]
+      rotation: [ 0.0, 0.0, 1.57 ]
   zbox0:
     module: object/box # object/box_no_lid
     init_pos:
-      translation: [1.6, 0.3, 0.8]
+      translation: [ 1.6, 0.3, 0.8 ]
       # rotation: [0.0, 1.57, 0.0]
   zbox1:
     module: object/box # object/box_no_lid
     init_pos:
-      translation: [1.6, -0.3, 0.8]
+      translation: [ 1.6, -0.3, 0.8 ]
       # rotation: [0.0, 1.57, 0.0]
   shelf0:
     module: env/table
     init_pos:
-      translation: [0.6, 1.0, 0.0]
+      translation: [ 0.6, 1.0, 0.0 ]
   shelf1:
     module: env/table
     init_pos:
-      translation: [0.6, -1.35, 0.0]
+      translation: [ 0.6, -1.35, 0.0 ]
 
   ground:
     module: env/ground

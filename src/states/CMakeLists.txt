@@ -12,5 +12,6 @@ add_fsm_state_simple(GoToBoxDropoffPose)
 target_link_libraries(GoToBoxDropoffPose PUBLIC GoTo)
 
 add_fsm_state_simple(PickupBox)
+add_fsm_state_simple(DropoffBox)
 
 add_fsm_data_directory(data)
