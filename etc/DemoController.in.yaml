@@ -358,6 +358,9 @@ states:
     leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
     rightOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
 
+  GoToBox1:
+    base: GoToBoxPickupPose
+    pickupPoseWorld: [ 1.24, -0.3, 0.0 ]
 
   Run:
     base: Meta
@@ -368,6 +371,7 @@ states:
       - [ GoToBox0, OK, PickupBox0, Auto ]
       - [ PickupBox0, OK, GoToDrop0, Auto ]
       - [ GoToDrop0, OK, DropoffBox0, Auto ]
+      - [ DropoffBox0, OK, GoToBox1, Auto ]
 
   Main:
     base: Parallel

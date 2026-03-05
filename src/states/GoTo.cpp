@@ -36,7 +36,7 @@ Eigen::Vector3d GoTo::computeRelativePose(Eigen::Vector3d PoseWorld, sva::PTrans
                                      PoseWorld.x() - robotPoseWorld.translation().x(),
                                      PoseWorld.y() - robotPoseWorld.translation().y()
                                     );
-    relativePosition = rotation * relativePosition;
+    relativePosition = rotation.transpose() * relativePosition;
 
     Eigen::Vector3d relativePose(relativePosition.x(), relativePosition.y(), PoseWorld.z() - angle);
 
