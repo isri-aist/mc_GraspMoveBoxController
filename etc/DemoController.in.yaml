@@ -255,7 +255,7 @@ states:
       autoStartTime: 2.0
 
   Walk:
-    base: BWC::FootstepPlanner
+    base: BWC::GuiWalk
     configs:
       autoStart: true
 
@@ -297,7 +297,7 @@ states:
 
   GoToBox0:
     base: GoToBoxPickupPose
-    pickupPoseWorld: [ 1.25, 0.31, 0.0 ]
+    pickupPoseWorld: [ 1.255, 0.31, 0.0 ]
 
   PickupBox0:
     base: PickupBox
@@ -311,6 +311,7 @@ states:
     completionSpeed: 2.0e-3
     manualPhaseChange: false
     approachOffset: 0.05
+    crouchOffset: 0.0
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
     leftRaisePositionRobot: [ -0.0, 0.35, -0.3 ]
@@ -361,6 +362,10 @@ states:
   GoToBox1:
     base: GoToBoxPickupPose
     pickupPoseWorld: [ 1.24, -0.3, 0.0 ]
+
+  GoToBackOfShelf:
+    base: GoToBoxPickupPose
+    pickupPoseWorld: [ 0.5, 2.0, 0.0 ]
 
   Run:
     base: Meta
