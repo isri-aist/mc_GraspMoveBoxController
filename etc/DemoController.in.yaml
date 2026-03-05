@@ -73,7 +73,7 @@ FootManager:
   name: FootManager
   footstepDuration: 0.9 # [sec]
   doubleSupportRatio: 0.15 # []
-  deltaTransLimit: [ 0.15, 0.1, 7.5 ] # (x [m], y [m], theta [deg])
+  deltaTransLimit: [ 0.12, 0.1, 7.5 ] # (x [m], y [m], theta [deg])
   midToFootTranss:
     Left:
       translation: [ 0, 0.11, 0 ] # [m]
@@ -90,24 +90,24 @@ FootManager:
   enableWrenchDistForTouchDownFoot: true
   enableArmSwing: false
   fricCoeff: 0.5
-  touchDownRemainingDuration: 0.12 # [sec]
-  touchDownPosError: 0.015 # [m]
-  touchDownForceZ: 120 # [N]
+  touchDownRemainingDuration: 0.2 # [sec]
+  touchDownPosError: 0.02 # [m]
+  touchDownForceZ: 100 # [N]
   impedanceGains:
     SingleSupport:
       damper:
         linear: [ 300, 300, 300 ]
-        angular: [ 100, 100, 100 ]
+        angular: [ 150, 150, 150 ]
       spring:
-        linear: [ 2250, 2250, 2250 ]
+        linear: [ 2250, 2250, 450 ]
         angular: [ 0, 0, 2000 ]
       wrench:
         linear: [ 0, 0, 0 ]
         angular: [ 1, 1, 0 ]
     DoubleSupport:
       damper:
-        linear: [ 300, 300, 1e4 ]
-        angular: [ 100, 100, 100 ]
+        linear: [ 300, 300, 1.5e4 ]
+        angular: [ 150, 150, 100 ]
       spring:
         linear: [ 2250, 2250, 0 ]
         angular: [ 0, 0, 2000 ]
@@ -166,9 +166,9 @@ CentroidalManager:
   enableComZFeedback: true
   dcmGainP: 2.0 # It must be greater than 1 to be stable
   zmpVelGain: 0.02
-  comZGainP: 10000.0
+  comZGainP: 20000.0
   comZGainD: 500.0
-  refComZ: 0.96 # [m]
+  refComZ: 0.94 # [m]
   useTargetPoseForControlRobotAnchorFrame: true
   useActualComForWrenchDist: false
   actualComOffset: [ 0.0, 0.0, 0.0 ]
@@ -412,6 +412,17 @@ robots:
     module: env/ground
 
   rhps1:
+    PostureTask:
+      jointWeights:
+        CHEST_P: 50
+      # For arm swing
+      jointGains:
+        - jointName: R_SHOULDER_P
+          stiffness: 400
+        - jointName: L_SHOULDER_P
+          stiffness: 400
+
+
     CoMTask:
       activeJoints:
         [
