@@ -1,14 +1,15 @@
-#include "PickupBox.h"
-#include "../DemoController.h"
-#include "./utils.h"
+#include "DropoffBox.h"
 
-#include <BaselineWalkingController/CentroidalManager.h>
-#include <SpaceVecAlg/PTransform.h>
+#include <Eigen/Geometry>
 #include <mc_rtc/gui/Label.h>
 #include <mc_tasks/CoMTask.h>
-#include <mc_tasks/TransformTask.h>
 
-void PickupBox::configure(const mc_rtc::Configuration & config)
+#include "utils.h"
+#include "../DemoController.h"
+#include "BaselineWalkingController/CentroidalManager.h"
+#include "BaselineWalkingController/FootManager.h"
+
+void DropoffBox::configure(const mc_rtc::Configuration & config)
 {
     mc_rtc::log::info("\n{}", config.dump(true, true));
 
@@ -29,8 +30,8 @@ void PickupBox::configure(const mc_rtc::Configuration & config)
     config("leftGripperContactOffset", m_leftGripperContactOffset);
     config("rightGripperContactOffset", m_rightGripperContactOffset);
     config("approachOffset", m_approachOffset);
-    config("leftCarryPositionRobot", m_leftCarryPositionRobot);
-    config("rightCarryPositionRobot", m_rightCarryPositionRobot);
+    config("leftDropPositionRobot", m_leftDropPositionRobot);
+    config("rightDropPositionRobot", m_rightDropPositionRobot);
     config("leftOrientationBox", m_leftOrientationBox);
     config("rightOrientationBox", m_rightOrientationBox);
     config("leftRaisePositionRobot", m_leftRaisePositionRobot);
@@ -46,17 +47,37 @@ void PickupBox::configure(const mc_rtc::Configuration & config)
     m_leftApproachOffsetBox  = {0.0, 0.0, m_approachOffset};
     m_rightApproachOffsetBox = {0.0, 0.0, m_approachOffset};
 
-    m_contactAdded     = false;
     m_allowPhaseChange = !m_manualPhaseChange;
 }
 
-void PickupBox::start(mc_control::fsm::Controller & ctl_)
+void DropoffBox::start(mc_control::fsm::Controller & ctl_)
 {
     auto & ctl = static_cast<DemoController&>(ctl_);
+
+    bool hasLeftContact = false, hasRightContact = false;
+
+    for (const auto & c : ctl.contacts())
+    {
+        mc_rtc::log::info("contact: {}:{} <-> {}:{}", c.r1->c_str(), c.r1Surface, c.r2->c_str(), c.r2Surface);
+
+        if (c.r1 == ctl.robot().name() && c.r1Surface == "LeftHandWrench" && c.r2 == m_objectName &&
+            c.r2Surface == m_objectSurfaceLeftGripper)
+            hasLeftContact = true;
+
+        if (c.r1 == ctl.robot().name() && c.r1Surface == "RightHandWrench" && c.r2 == m_objectName &&
+            c.r2Surface == m_objectSurfaceRightGripper)
+            hasRightContact = true;
+    }
+    if (!hasLeftContact || !hasRightContact) mc_rtc::log::error_and_throw("Didn't find box contacts");
+    m_contactAdded = true;
 
     m_leftGripperTask =
             std::make_shared<mc_tasks::TransformTask>("LeftHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
+
+    m_rightGripperTask =
+            std::make_shared<mc_tasks::TransformTask>("RightHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
+    m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
 
     // todo: *ArmJoints, quaternion orientation and orientation active joint must be loaded as config
     m_leftElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
@@ -65,13 +86,12 @@ void PickupBox::start(mc_control::fsm::Controller & ctl_)
                                                                              m_weight / 2
                                                                             );
     m_leftElbowOrientationTask->selectActiveJoints(ctl.solver(), {"L_SHOULDER_Y"});
-    m_leftElbowOrientationTask->orientation(sva::RotZ(m_leftShoulderZAngle));
+    m_leftElbowOrientationTask->orientation(
+                                            ctl.robot().frame(m_robotReferenceFrame).position().rotation()
+                                            * sva::RotZ(m_leftShoulderZAngle)
+                                           );
 
     ctl.solver().addTask(m_leftElbowOrientationTask);
-
-    m_rightGripperTask =
-            std::make_shared<mc_tasks::TransformTask>("RightHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
-    m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
 
     m_rightElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
                                                                               ctl.robot().frame("R_SHOULDER_Y_LINK"),
@@ -79,36 +99,21 @@ void PickupBox::start(mc_control::fsm::Controller & ctl_)
                                                                               m_weight / 2
                                                                              );
     m_rightElbowOrientationTask->selectActiveJoints(ctl.solver(), {"R_SHOULDER_Y"});
-    m_rightElbowOrientationTask->orientation(sva::RotZ(m_rightShoulderZAngle));
+    m_rightElbowOrientationTask->orientation(
+                                             ctl.robot().frame(m_robotReferenceFrame).position().rotation()
+                                             * sva::RotZ(m_rightShoulderZAngle)
+                                            );
 
     ctl.solver().addTask(m_rightElbowOrientationTask);
-
-    m_leftContact = mc_control::Contact(
-                                        ctl.robot().name(),
-                                        ctl.robot(m_objectName).name(),
-                                        "LeftHandWrench",
-                                        m_objectSurfaceLeftGripper,
-                                        mc_rbdyn::Contact::defaultFriction,
-                                        Eigen::Vector6d::Ones()
-                                       );
-
-    m_rightContact = mc_control::Contact(
-                                         ctl.robot().name(),
-                                         ctl.robot(m_objectName).name(),
-                                         "RightHandWrench",
-                                         m_objectSurfaceRightGripper,
-                                         mc_rbdyn::Contact::defaultFriction,
-                                         Eigen::Vector6d::Ones()
-                                        );
 
     m_boxHalfWidth = 0.5 *
             (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
                 ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
            .norm();
 
-    m_leftCarryPositionRobot.y()  = m_boxHalfWidth;
-    m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
-    m_refComZ                     = ctl.comTask_->com().z();
+    m_leftDropPositionRobot.y()  = m_boxHalfWidth;
+    m_rightDropPositionRobot.y() = -m_boxHalfWidth;
+    m_refComZ                    = ctl.comTask_->com().z();
 
     ctl.gui()->addElement(
                           {"GraspMoveBox"},
@@ -149,7 +154,7 @@ void PickupBox::start(mc_control::fsm::Controller & ctl_)
                          );
 }
 
-bool PickupBox::run(mc_control::fsm::Controller & ctl_)
+bool DropoffBox::run(mc_control::fsm::Controller & ctl_)
 {
     auto & ctl = static_cast<DemoController&>(ctl_);
 
@@ -167,27 +172,22 @@ bool PickupBox::run(mc_control::fsm::Controller & ctl_)
 
     if (m_phase == Phase::None)
     {
-        if (!m_allowPhaseChange) return false;
-        if (m_manualPhaseChange) m_allowPhaseChange = false;
-
-        mc_rtc::log::info("Now in raise hands phase");
-        m_phase = Phase::RaiseHands;
-
-        m_startTime = ctl.t();
+        mc_rtc::log::info("Now in lower box phase");
+        m_phase = Phase::LowerBox;
 
         m_leftGripperTask->target(
                                   ctl.robot().frame(m_robotReferenceFrame),
-                                  {m_leftOrientationRobot, m_leftRaisePositionRobot}
+                                  {m_leftOrientationRobot, m_leftDropPositionRobot + m_leftGraspOffsetRobot}
                                  );
         ctl.solver().addTask(m_leftGripperTask);
 
         m_rightGripperTask->target(
                                    ctl.robot().frame(m_robotReferenceFrame),
-                                   {m_rightOrientationRobot, m_rightRaisePositionRobot}
+                                   {m_rightOrientationRobot, m_rightDropPositionRobot + m_rightGraspOffsetRobot}
                                   );
         ctl.solver().addTask(m_rightGripperTask);
 
-        return false;
+        ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), 1.0);
     }
 
     bool completed =
@@ -196,27 +196,33 @@ bool PickupBox::run(mc_control::fsm::Controller & ctl_)
         m_rightGripperTask->eval().norm() < m_completionEval &&
         m_rightGripperTask->speed().norm() < m_completionSpeed);
 
-    if (m_phase == Phase::RaiseHands && m_startTime + m_timeout < ctl.t())
+    if (m_phase == Phase::RemoveHands && m_startTime + m_timeout < ctl.t())
     {
-        mc_rtc::log::info("raise hands timed out");
+        mc_rtc::log::info("remove hands timed out");
         completed = true;
     }
 
-    if (m_phase == Phase::RaiseHands && completed)
+    if (m_phase == Phase::LowerBox && completed)
     {
         if (!m_allowPhaseChange) return false;
         if (m_manualPhaseChange) m_allowPhaseChange = false;
 
-        mc_rtc::log::info("Now in approach phase");
-        m_phase = Phase::ApproachBox;
+        mc_rtc::log::info("Now in drop box phase");
+        m_phase = Phase::DropBox;
 
-        // set to max double to deactivate the timeout
-        m_startTime = std::numeric_limits<double>::max();
+        if (m_contactAdded)
+        {
+            ctl.clearContacts();
+            m_contactAdded = false;
+        }
 
         m_leftGripperTask->targetSurface(
                                          ctl.robot(m_objectName).robotIndex(),
                                          m_objectSurfaceLeftGripper,
-                                         {m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()}
+                                         {
+                                             m_leftOrientationBox,
+                                             (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()
+                                         }
                                         );
 
         m_rightGripperTask->targetSurface(
@@ -227,55 +233,29 @@ bool PickupBox::run(mc_control::fsm::Controller & ctl_)
                                               (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()
                                           }
                                          );
-
-        ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), 1.0);
-
-        return false;
     }
 
-    if (m_phase == Phase::ApproachBox && completed)
+    if (m_phase == Phase::DropBox && completed)
     {
         if (!m_allowPhaseChange) return false;
         if (m_manualPhaseChange) m_allowPhaseChange = false;
 
-        mc_rtc::log::info("Now in grasping phase");
-        m_phase = Phase::GraspBox;
+        mc_rtc::log::info("Now in remove hands phase");
+        m_phase = Phase::RemoveHands;
 
-        m_leftGripperTask->targetSurface(
-                                         ctl.robot(m_objectName).robotIndex(),
-                                         m_objectSurfaceLeftGripper,
-                                         {m_leftOrientationBox, m_leftGraspOffsetBox}
-                                        );
+        m_startTime = ctl.t();
 
-        m_rightGripperTask->targetSurface(
-                                          ctl.robot(m_objectName).robotIndex(),
-                                          m_objectSurfaceRightGripper,
-                                          {m_rightOrientationBox, m_rightGraspOffsetBox}
-                                         );
-
-        return false;
-    }
-
-    if (m_phase == Phase::GraspBox && completed)
-    {
-        if (!m_allowPhaseChange) return false;
-        if (m_manualPhaseChange) m_allowPhaseChange = false;
-
-        mc_rtc::log::info("Now in lift phase");
-        m_phase = Phase::RaiseBox;
-
-        ctl.addContact(m_leftContact);
-        ctl.addContact(m_rightContact);
-        m_contactAdded = true;
+        ctl.solver().removeTask(m_leftElbowOrientationTask);
+        ctl.solver().removeTask(m_rightElbowOrientationTask);
 
         m_leftGripperTask->target(
                                   ctl.robot().frame(m_robotReferenceFrame),
-                                  {m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot}
+                                  {m_leftOrientationRobot, m_leftRaisePositionRobot}
                                  );
 
         m_rightGripperTask->target(
                                    ctl.robot().frame(m_robotReferenceFrame),
-                                   {m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot}
+                                   {m_rightOrientationRobot, m_rightRaisePositionRobot}
                                   );
 
         ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), 1.0);
@@ -283,7 +263,7 @@ bool PickupBox::run(mc_control::fsm::Controller & ctl_)
         return false;
     }
 
-    if (m_phase == Phase::RaiseBox && completed)
+    if (m_phase == Phase::RemoveHands && completed)
     {
         output("OK");
         return true;
@@ -292,26 +272,23 @@ bool PickupBox::run(mc_control::fsm::Controller & ctl_)
     return false;
 }
 
-void PickupBox::teardown(mc_control::fsm::Controller & ctl_)
+void DropoffBox::teardown(mc_control::fsm::Controller & ctl_)
 {
     auto & ctl = static_cast<DemoController&>(ctl_);
+
+    ctl.gui()->removeElement({"DropoffBox"}, "Next Phase");
+    ctl.gui()->removeElement({"DropoffBox"}, "Left gripper distance to box and speed");
+    ctl.gui()->removeElement({"DropoffBox"}, "Right gripper distance to box and speed");
+
 
     ctl.solver().removeTask(m_leftGripperTask);
     ctl.solver().removeTask(m_rightGripperTask);
 
-    ctl.solver().removeTask(m_leftElbowOrientationTask);
-    ctl.solver().removeTask(m_rightElbowOrientationTask);
-
     if (m_contactAdded && m_removeContactAtTeardown)
     {
-        ctl.removeContact(m_leftContact);
-        ctl.removeContact(m_rightContact);
+        ctl.clearContacts();
         m_contactAdded = false;
     }
-
-    ctl.gui()->removeElement({"GraspMoveBox"}, "Next Phase");
-    ctl.gui()->removeElement({"GraspMoveBox"}, "Left gripper distance to box and speed");
-    ctl.gui()->removeElement({"GraspMoveBox"}, "Right gripper distance to box and speed");
 }
 
-EXPORT_SINGLE_STATE("PickupBox", PickupBox)
+EXPORT_SINGLE_STATE("DropoffBox", DropoffBox)

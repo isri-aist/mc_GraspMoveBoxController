@@ -313,8 +313,8 @@ states:
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
-    leftRaisePositionRobot: [ -0.05, 0.35, -0.0 ]
-    rightRaisePositionRobot: [ -0.05, -0.35, -0.0 ]
+    leftRaisePositionRobot: [ -0.0, 0.35, -0.3 ]
+    rightRaisePositionRobot: [ -0.0, -0.35, -0.3 ]
     leftCarryPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
     rightCarryPositionRobot: [ 0.3, 0.0, -0.1 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
@@ -335,20 +335,29 @@ states:
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
 
-  # MoveBox1:
-  #   base: GraspMoveBox
-  #   objectName: zbox0
-  #   graspFromPoseWorld: [1.25, -0.3, 0.0]
-  #   dropFromPoseWorld: [1.25, -0.3, 3.14]
-  #   objectSurfaceRightGripper: Left
-  #   objectSurfaceLeftGripper: Right
-  #   weight: 1000
-  #   stiffness: 2
-  #   approachOffset: 0.1
-  #   liftHeight: 0.4
-  #   liftPullback: 0.0
-  #   completionEval: 0.1
-  #   completionSpeed: 1.0e-3
+  DropoffBox0:
+    base: DropoffBox
+    objectName: zbox0
+    objectSurfaceLeftGripper: Right
+    objectSurfaceRightGripper: Left
+    stiffness: 2
+    weight: 4000
+    timeout: 3.0
+    completionEval: 0.05
+    completionSpeed: 2.0e-3
+    manualPhaseChange: false
+    approachOffset: 0.05
+    leftGripperContactOffset: 0.1
+    rightGripperContactOffset: 0.06
+    leftRaisePositionRobot: [ -0.05, 0.35, -0.0 ]
+    rightRaisePositionRobot: [ -0.05, -0.35, -0.0 ]
+    leftDropPositionRobot: [ 0.4, 0.0, -0.15 ] # y value is automatically set with box width
+    rightDropPositionRobot: [ 0.4, 0.0, -0.15 ]
+    leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
+    rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
+    leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
+    rightOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
+
 
   Run:
     base: Meta
@@ -358,6 +367,7 @@ states:
     transitions:
       - [ GoToBox0, OK, PickupBox0, Auto ]
       - [ PickupBox0, OK, GoToDrop0, Auto ]
+      - [ GoToDrop0, OK, DropoffBox0, Auto ]
 
   Main:
     base: Parallel
@@ -378,12 +388,12 @@ robots:
   zbox0:
     module: object/box # object/box_no_lid
     init_pos:
-      translation: [ 1.6, 0.3, 0.8 ]
+      translation: [ 1.6, 0.3, 0.775 ]
       # rotation: [0.0, 1.57, 0.0]
   zbox1:
     module: object/box # object/box_no_lid
     init_pos:
-      translation: [ 1.6, -0.3, 0.8 ]
+      translation: [ 1.6, -0.3, 0.775 ]
       # rotation: [0.0, 1.57, 0.0]
   shelf0:
     module: env/table
