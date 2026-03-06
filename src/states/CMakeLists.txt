@@ -5,6 +5,8 @@ install(TARGETS GoTo
         LIBRARY DESTINATION "${MC_STATES_RUNTIME_INSTALL_PREFIX}"
 )
 
+add_fsm_state_simple(MoveHands)
+
 add_fsm_state_simple(GoToBoxPickupPose)
 target_link_libraries(GoToBoxPickupPose PUBLIC GoTo)
 

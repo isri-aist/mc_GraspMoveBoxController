@@ -300,6 +300,15 @@ states:
     pickupPoseWorld: [ 1.2, 0.3, 0.0 ]
     autoStart: true
 
+  RaiseHands:
+    base: MoveHands
+    leftHandTargetPositionRobot: [ 0.1, 0.3, -0.2 ]
+    rightHandTargetPositionRobot: [ 0.1, -0.3, -0.2 ]
+
+  WalkToBox0:
+    base: Parallel
+    states: [ RaiseHands, GoToBox0 ]
+
   GoToBox0Step0:
     base: GoToBoxPickupPose
     pickupPoseWorld: [ 1.25, 0.0, 0.0 ]
@@ -394,7 +403,7 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [ GoToBox0, OK, PickupBox0, Auto ]
+      - [ WalkToBox0, OK, PickupBox0, Auto ]
       - [ PickupBox0, OK, GoToDrop0, Auto ]
       - [ GoToDrop0, OK, DropoffBox0, Auto ]
       - [ DropoffBox0, OK, GoToBox1, Auto ]
