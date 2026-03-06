@@ -64,8 +64,6 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_leftElbowOrientationTask->selectActiveJoints(ctl.solver(), {"L_SHOULDER_Y"});
     m_leftElbowOrientationTask->orientation(sva::RotZ(m_leftShoulderZAngle));
 
-    ctl.solver().addTask(m_leftElbowOrientationTask);
-
     m_rightGripperTask =
             std::make_shared<mc_tasks::TransformTask>("RightHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
@@ -74,8 +72,6 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
             ctl.robot().frame("R_SHOULDER_Y_LINK"), m_stiffness, m_weight / 2);
     m_rightElbowOrientationTask->selectActiveJoints(ctl.solver(), {"R_SHOULDER_Y"});
     m_rightElbowOrientationTask->orientation(sva::RotZ(m_rightShoulderZAngle));
-
-    ctl.solver().addTask(m_rightElbowOrientationTask);
 
     m_leftContact = mc_control::Contact(
             ctl.robot().name(),
@@ -205,6 +201,8 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
 
         ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), 1.0);
+        ctl.solver().addTask(m_leftElbowOrientationTask);
+        ctl.solver().addTask(m_rightElbowOrientationTask);
 
         return false;
     }
