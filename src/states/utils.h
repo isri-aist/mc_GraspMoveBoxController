@@ -12,6 +12,7 @@ const std::vector<std::string> LeftArmJoints = {
         "L_WRIST_R",
         "L_WRIST_Y",
 };
+
 const std::vector<std::string> RightArmJoints = {
         "R_SHOULDER_P",
         "R_SHOULDER_R",

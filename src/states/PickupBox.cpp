@@ -94,11 +94,15 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
              ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
                     .norm();
 
-    ctl.gui()->addElement({"GraspMoveBox"}, mc_rtc::gui::Button("Force Add Contacts", [&ctl, this]
-    {
-        ctl.addContact(m_leftContact);
-        ctl.addContact(m_rightContact);
-    }));
+    ctl.gui()->addElement(
+            {"GraspMoveBox"},
+            mc_rtc::gui::Button(
+                    "Force Add Contacts",
+                    [&ctl, this]
+                    {
+                        ctl.addContact(m_leftContact);
+                        ctl.addContact(m_rightContact);
+                    }));
 
     m_leftCarryPositionRobot.y()  = m_boxHalfWidth;
     m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
