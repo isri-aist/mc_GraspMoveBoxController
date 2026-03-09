@@ -256,44 +256,6 @@ states:
 
   Walk:
     base: BWC::GuiWalk
-    configs:
-      autoStart: true
-
-      maxPlanningDuration: 1.0 # [sec]
-      initialHeuristicsWeight: 10.0
-
-      footstepPlanner:
-        theta_divide_num: 64
-        xy_divide_step: 0.01 # [m]
-
-        cost_scale: 1.0e3
-        theta_scale: 0 # [m/rad]
-        step_cost: 1.0
-
-        heuristic_type: DijkstraPath
-        dijkstra_path_heuristic_expand_scale: 5.0
-
-        nominal_foot_separation: 0.2 # [m]
-
-        r2l_action_cont_list: # [m], [rad]
-          [
-            [ 0.175, 0, 0 ],
-            [ -0.125, 0, 0 ],
-            [ 0, 0.125, 0 ],
-            [ 0, -0.05, 0 ],
-            [ 0, 0, 0.2618 ],
-            [ 0, 0, -0.2618 ],
-          ]
-
-        r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
-        r2l_reachable_max: [ 0.1, 0.1, 0.1745 ] # [m], [rad]
-        rect_obstacle_list:
-          # desk (at [2.0, 0.0], rotated 90 deg)
-          - [ 2.0, 0.0, 0.45, 0.8 ]
-          # shelf0 (at [0.6, 1.0])
-          - [ 0.6, 1.0, 0.8, 0.45 ]
-          # shelf1 (at [0.6, -1.35])
-          - [ 0.6, -1.35, 0.8, 0.45 ]
 
   GoToBox0:
     base: GoToBoxPickupPose
@@ -305,9 +267,11 @@ states:
     leftHandTargetPositionRobot: [ 0.1, 0.3, -0.2 ]
     rightHandTargetPositionRobot: [ 0.1, -0.3, -0.2 ]
 
-  WalkToBox0:
+  GoToBox0AndRaiseHands:
     base: Parallel
     states: [ RaiseHands, GoToBox0 ]
+    delays:
+      RaiseHands: 1.0
 
   GoToBox0Step0:
     base: GoToBoxPickupPose
@@ -337,13 +301,13 @@ states:
     completionSpeed: 2.0e-3
     manualPhaseChange: false
     approachOffset: 0.05
-    crouchOffset: 0.1
+    crouchOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
     leftRaisePositionRobot: [ 0.15, 0.3, -0.2 ]
     rightRaisePositionRobot: [ 0.15, -0.3, -0.2 ]
-    leftCarryPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
-    rightCarryPositionRobot: [ 0.3, 0.0, -0.1 ]
+    leftCarryPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
+    rightCarryPositionRobot: [ 0.3, 0.0, -0. ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
@@ -366,13 +330,49 @@ states:
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
 
+  GoToDrop0Step0:
+    base: GoToBoxDropoffPose
+    dropoffPoseWorld: [ 1.25, 0.3, -2.0 ]
+    stiffness: 2
+    weight: 4000
+    objectName: zbox0
+    objectSurfaceLeftGripper: Right
+    objectSurfaceRightGripper: Left
+    leftPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
+    rightPositionRobot: [ 0.3, 0.0, -0. ]
+    leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
+    rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
+    autoStart: true
+
+  GoToDrop0Step1:
+    base: GoToBoxDropoffPose
+    dropoffPoseWorld: [ 0.6, -0.5, -1.57 ]
+    stiffness: 2
+    weight: 4000
+    objectName: zbox0
+    objectSurfaceLeftGripper: Right
+    objectSurfaceRightGripper: Left
+    leftPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
+    rightPositionRobot: [ 0.3, 0.0, -0. ]
+    leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
+    rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
+    autoStart: true
+
+  GoToDrop0WithSteps:
+    base: Meta
+    Managed: false
+    StepByStep: true
+    ResetPostures: false
+    transitions:
+      - [ GoToDrop0Step0, OK, GoToDrop0Step1, Auto]
+
   DropoffBox0:
     base: DropoffBox
     objectName: zbox0
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
     stiffness: 2
-    weight: 4000
+    weight: 100000
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
@@ -380,10 +380,10 @@ states:
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
-    leftRaisePositionRobot: [ -0.05, 0.35, 0.1 ]
-    rightRaisePositionRobot: [ -0.05, -0.35, -0.0 ]
-    leftDropPositionRobot: [ 0.4, 0.0, -0.15 ] # y value is automatically set with box width
-    rightDropPositionRobot: [ 0.4, 0.0, -0.15 ]
+    leftRaisePositionRobot:  [ 0., 0.3, -0.1 ]
+    rightRaisePositionRobot: [ 0., -0.3, -0.1 ]
+    leftDropPositionRobot: [ 0.4, 0.0, -0.2 ] # y value is automatically set with box width
+    rightDropPositionRobot: [ 0.4, 0.0, -0.2 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
@@ -392,6 +392,10 @@ states:
   GoToBox1:
     base: GoToBoxPickupPose
     pickupPoseWorld: [ 1.24, -0.3, 0.0 ]
+
+  GoToBox1AndRaiseHands:
+    base: Parallel
+    states: [ RaiseHands, GoToBox1 ]
 
   GoToBackOfShelf:
     base: GoToBoxPickupPose
@@ -403,10 +407,10 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [ WalkToBox0, OK, PickupBox0, Auto ]
-      - [ PickupBox0, OK, GoToDrop0, Auto ]
-      - [ GoToDrop0, OK, DropoffBox0, Auto ]
-      - [ DropoffBox0, OK, GoToBox1, Auto ]
+      - [ GoToBox0AndRaiseHands, OK, PickupBox0, Auto ]
+      - [ PickupBox0, OK, GoToDrop0WithSteps, Auto ]
+      - [ GoToDrop0WithSteps, OK, DropoffBox0, Auto ]
+      - [ DropoffBox0, OK, GoToBox1AndRaiseHands, Auto ]
 
   RunWithoutBox:
     base: Meta
