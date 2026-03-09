@@ -40,6 +40,7 @@ void MoveHands::start(mc_control::fsm::Controller &ctl_)
 bool MoveHands::run(mc_control::fsm::Controller &ctl_)
 {
     if (!m_waitForEvalThreshold) return true;
+    return false;
 }
 
 void MoveHands::teardown(mc_control::fsm::Controller &ctl_)
