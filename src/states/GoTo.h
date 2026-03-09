@@ -1,7 +1,6 @@
 #pragma once
 
 #include <BaselineWalkingController/states/FootstepPlannerState.h>
-#include <Eigen/Geometry>
 #include <mc_control/fsm/State.h>
 
 struct GoTo : BWC::FootstepPlannerState
@@ -17,5 +16,4 @@ struct GoTo : BWC::FootstepPlannerState
         bool m_started   = false;
 
         Eigen::Vector3d m_destinationPoseWorld;
-        Eigen::Vector3d computeRelativePose(Eigen::Vector3d poseWorld, sva::PTransformd robotPoseWorld);
 };

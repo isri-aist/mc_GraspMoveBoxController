@@ -9,6 +9,7 @@ void GoTo::configure(const mc_rtc::Configuration &config)
 
     mc_rtc::log::info("GoTo:\n{}", config.dump(true, true));
     config("autoStart", m_autoStart);
+    config("destinationPoseWorld", m_destinationPoseWorld);
 }
 
 void GoTo::start(mc_control::fsm::Controller &ctl_)
@@ -17,9 +18,7 @@ void GoTo::start(mc_control::fsm::Controller &ctl_)
 
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    Eigen::Vector3d relativePose = computeRelativePose(m_destinationPoseWorld, ctl.robot().posW());
-
-    auto start = [&ctl, this, relativePose]
+    auto start = [&ctl, this]
     {
         goalFootMidpose_ = {m_destinationPoseWorld.x(), m_destinationPoseWorld.y(), m_destinationPoseWorld.z()};
         triggered_       = true;
@@ -52,23 +51,4 @@ void GoTo::teardown(mc_control::fsm::Controller &ctl_)
     FootstepPlannerState::teardown(ctl_);
 }
 
-Eigen::Vector3d GoTo::computeRelativePose(Eigen::Vector3d PoseWorld, sva::PTransformd robotPoseWorld)
-{
-    double          angle(mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()).z());
-    Eigen::Matrix2d rotation = Eigen::Rotation2Dd(angle).toRotationMatrix();
-
-    Eigen::Vector2d relativePosition(
-            PoseWorld.x() - robotPoseWorld.translation().x(), PoseWorld.y() - robotPoseWorld.translation().y());
-    relativePosition = rotation.transpose() * relativePosition;
-
-    Eigen::Vector3d relativePose(relativePosition.x(), relativePosition.y(), PoseWorld.z() - angle);
-
-    mc_rtc::log::info(
-            "RobotW: {}-{}, DestinationW: {}, DestinationR: {}",
-            robotPoseWorld.translation(),
-            mc_rbdyn::rpyFromMat(robotPoseWorld.rotation()),
-            PoseWorld,
-            relativePose);
-
-    return relativePose;
-}
+EXPORT_SINGLE_STATE("GoTo", GoTo)
