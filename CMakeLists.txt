@@ -15,6 +15,7 @@ if (NOT TARGET mc_rtc::mc_control)
 endif ()
 
 find_package(baseline_walking_controller REQUIRED)
+find_package(baseline_footstep_planner REQUIRED)
 
 add_subdirectory(src)
 

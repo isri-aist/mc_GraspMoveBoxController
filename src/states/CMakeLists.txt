@@ -1,5 +1,16 @@
 add_library(GoTo SHARED GoTo.cpp)
-target_link_libraries(GoTo mc_rtc::mc_control)
+message(STATUS "${baseline_walking_controller_LIBRARY}")
+target_link_libraries(
+        GoTo
+        mc_rtc::mc_control
+        baseline_walking_controller::BaselineWalkingController
+        baseline_footstep_planner::BaselineFootstepPlanner
+        ${BWC_STATES_LIBRARIES}/FootstepPlannerState.so
+)
+set_target_properties(GoTo PROPERTIES
+        BUILD_RPATH "${BWC_STATES_LIBRARIES}"
+        INSTALL_RPATH "${BWC_STATES_LIBRARIES}"
+)
 install(TARGETS GoTo
         EXPORT ${PROJECT_NAME}Targets
         LIBRARY DESTINATION "${MC_STATES_RUNTIME_INSTALL_PREFIX}"

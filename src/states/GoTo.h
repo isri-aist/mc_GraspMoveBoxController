@@ -1,9 +1,10 @@
 #pragma once
 
+#include <BaselineWalkingController/states/FootstepPlannerState.h>
 #include <Eigen/Geometry>
 #include <mc_control/fsm/State.h>
 
-struct GoTo : mc_control::fsm::State
+struct GoTo : BWC::FootstepPlannerState
 {
         bool run(mc_control::fsm::Controller &ctl_) override;
         void start(mc_control::fsm::Controller &ctl_) override;
@@ -12,6 +13,7 @@ struct GoTo : mc_control::fsm::State
 
     protected:
         bool m_autoStart = false;
+        bool m_planning  = false;
         bool m_started   = false;
 
         Eigen::Vector3d m_destinationPoseWorld;
