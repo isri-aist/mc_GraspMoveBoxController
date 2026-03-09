@@ -12,6 +12,7 @@ set_target_properties(GoTo PROPERTIES
 )
 
 add_fsm_state_simple(MoveHands)
+add_fsm_state_simple(HoldBox)
 
 add_fsm_state_simple(PickupBox)
 add_fsm_state_simple(DropoffBox)
