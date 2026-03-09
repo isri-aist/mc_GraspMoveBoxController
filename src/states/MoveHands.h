@@ -16,8 +16,8 @@ struct MoveHands : mc_control::fsm::State
         Eigen::Vector3d m_leftHandTargetPositionRobot;
         Eigen::Vector3d m_rightHandTargetPositionRobot;
 
-        Eigen::Quaterniond m_leftHandTargetOrientationRobot = {0.5, 0.5, 0.5, -0.5};
-        Eigen::Quaterniond m_rightHandTargetOrientationRobot  = {0.5, -0.5, 0.5, 0.5};
+        Eigen::Quaterniond m_leftHandTargetOrientationRobot  = {0.5, 0.5, 0.5, -0.5};
+        Eigen::Quaterniond m_rightHandTargetOrientationRobot = {0.5, -0.5, 0.5, 0.5};
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_leftHandFrame       = "LeftHandSupportPlate";
