@@ -2,7 +2,7 @@
 
 void GoToBoxPickupPose::configure(const mc_rtc::Configuration &config)
 {
-    mc_rtc::log::info("\n{}", config.dump(true, true));
+    mc_rtc::log::info("GoToPickupPose:\n{}", config.dump(true, true));
 
     config("pickupPoseWorld", m_destinationPoseWorld);
 

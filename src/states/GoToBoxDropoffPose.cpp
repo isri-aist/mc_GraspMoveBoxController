@@ -6,7 +6,7 @@
 
 void GoToBoxDropoffPose::configure(const mc_rtc::Configuration &config)
 {
-    mc_rtc::log::info("\n{}", config.dump(true, true));
+    mc_rtc::log::info("GoToDropoffPose:\n{}", config.dump(true, true));
 
     config("robotReferenceFrame", m_robotReferenceFrame);
     config("objectName", m_objectName);

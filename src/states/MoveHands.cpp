@@ -4,7 +4,7 @@
 
 void MoveHands::configure(const mc_rtc::Configuration &config)
 {
-    mc_rtc::log::info("\n{}", config.dump(true, true));
+    mc_rtc::log::info("MoveHands:\n{}", config.dump(true, true));
 
     // if (!(config.has("leftHandTargetPositionRobot") && config.has("rightHandTargetPositionRobot")))
     //     mc_rtc::log::error_and_throw("Missing required config fields");

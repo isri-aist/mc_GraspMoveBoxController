@@ -10,7 +10,7 @@
 
 void PickupBox::configure(const mc_rtc::Configuration &config)
 {
-    mc_rtc::log::info("\n{}", config.dump(true, true));
+    mc_rtc::log::info("PickupBox:\n{}", config.dump(true, true));
 
     config("robotReferenceFrame", m_robotReferenceFrame);
     config("objectName", m_objectName);

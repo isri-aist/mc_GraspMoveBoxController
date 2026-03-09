@@ -249,6 +249,37 @@ OverwriteConfigList:
 
 # Implement some additional text states
 states:
+  configs:
+    maxPlanningDuration: 1.0 # [sec]
+    initialHeuristicsWeight: 10.0
+    footstepPlanner:
+      theta_divide_num: 64
+      xy_divide_step: 0.01 # [m]
+      cost_scale: 1.0e3
+      theta_scale: 0 # [m/rad]
+      step_cost: 1.0
+      dijkstra_path_heuristic_expand_scale: 5.0
+      nominal_foot_separation: 0.2 # [m]
+      r2l_action_cont_list: # [m], [rad]
+        [
+          [ 0.175, 0, 0 ],
+          [ -0.125, 0, 0 ],
+          [ 0, 0.125, 0 ],
+          [ 0, -0.125, 0 ],
+          [ 0, 0, 0.2618 ],
+          [ 0, 0, -0.2618 ],
+        ]
+      r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
+      r2l_reachable_max: [ 0.1, 0.1, 0.1745 ] # [m], [rad]
+      rect_obstacle_list:
+        # desk (at [2.0, 0.0], rotated 90 deg)
+        - [ 1.85, 0.0, 0.525, 0.8 ]
+        # shelf0 (at [0.6, 1.0])
+        - [ 0.6, 1.15, 0.8, 0.525 ]
+        # shelf1 (at [0.6, -1.5])
+        - [ 0.6, -1.35, 0.8, 0.525 ]
+
+
   Initial:
     base: BWC::Initial
     configs:
@@ -261,11 +292,15 @@ states:
     base: GoToBoxPickupPose
     pickupPoseWorld: [ 1.2, 0.3, 0.0 ]
     autoStart: true
+    configs:
+      maxPlanningDuration: 1.0 # [sec]
+      initialHeuristicsWeight: 10.0
 
   RaiseHands:
     base: MoveHands
-    leftHandTargetPositionRobot: [ 0.1, 0.3, -0.2 ]
-    rightHandTargetPositionRobot: [ 0.1, -0.3, -0.2 ]
+    leftHandTargetPositionRobot: [ 0.1, 0.3, -0. ]
+    rightHandTargetPositionRobot: [ 0.1, -0.3, -0. ]
+    weight: 10000
 
   GoToBox0AndRaiseHands:
     base: Parallel
@@ -318,6 +353,7 @@ states:
     dropoffPoseWorld: [ 0.6, -0.5, -1.57 ]
 
   GoToDrop0:
+    autoStart: true
     base: GoToBoxDropoffPose
     dropoffPoseWorld: [ 0.6, -0.5, -1.57 ]
     stiffness: 2
@@ -329,6 +365,9 @@ states:
     rightPositionRobot: [ 0.3, 0.0, -0.1 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
+    configs:
+      maxPlanningDuration: 1.0 # [sec]
+      initialHeuristicsWeight: 10.0
 
   GoToDrop0Step0:
     base: GoToBoxDropoffPose
@@ -390,8 +429,12 @@ states:
     rightOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
 
   GoToBox1:
+    autoStart: true
     base: GoToBoxPickupPose
     pickupPoseWorld: [ 1.24, -0.3, 0.0 ]
+    configs:
+      maxPlanningDuration: 1.0 # [sec]
+      initialHeuristicsWeight: 10.0
 
   GoToBox1AndRaiseHands:
     base: Parallel
@@ -408,8 +451,8 @@ states:
     ResetPostures: false
     transitions:
       - [ GoToBox0AndRaiseHands, OK, PickupBox0, Auto ]
-      - [ PickupBox0, OK, GoToDrop0WithSteps, Auto ]
-      - [ GoToDrop0WithSteps, OK, DropoffBox0, Auto ]
+      - [ PickupBox0, OK, GoToDrop0, Auto ]
+      - [ GoToDrop0, OK, DropoffBox0, Auto ]
       - [ DropoffBox0, OK, GoToBox1AndRaiseHands, Auto ]
 
   RunWithoutBox:
