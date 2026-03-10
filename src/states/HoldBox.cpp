@@ -38,7 +38,7 @@ void HoldBox::start(mc_control::fsm::Controller &ctl_)
             c.r2Surface == m_objectSurfaceRightGripper)
             hasRightContact = true;
     }
-    if (!hasLeftContact || !hasRightContact) mc_rtc::log::error_and_throw("Didn't find box contacts");
+    if (!hasLeftContact || !hasRightContact) mc_rtc::log::error("Didn't find box contacts");
 
     const double boxHalfWidth = 0.5 *
             (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
