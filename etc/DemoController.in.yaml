@@ -490,7 +490,7 @@ states:
 
   Main:
     base: Parallel
-    states: [ Walk, PickupBox0 ]
+    states: [ Walk, Run ]
 
 transitions:
   - [ Initial, OK, Main, Auto ]
@@ -527,8 +527,6 @@ robots:
     module: env/ground
 
   rhps1:
-    init_pos:
-      translation: [ 1.2, 0.3, 0.8 ]
     PostureTask:
       jointWeights:
         CHEST_P: 50
