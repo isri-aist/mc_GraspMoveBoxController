@@ -286,6 +286,7 @@ void PickupBox::teardown(mc_control::fsm::Controller &ctl_)
     ctl.gui()->removeElement({"GraspMoveBox"}, "Next Phase");
     ctl.gui()->removeElement({"GraspMoveBox"}, "Left gripper distance to box and speed");
     ctl.gui()->removeElement({"GraspMoveBox"}, "Right gripper distance to box and speed");
+    ctl.gui()->removeElement({"GraspMoveBox"}, "Force Add Contacts");
 }
 
 EXPORT_SINGLE_STATE("PickupBox", PickupBox)
