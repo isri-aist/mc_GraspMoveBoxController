@@ -44,6 +44,7 @@ bool GoTo::run(mc_control::fsm::Controller &ctl_)
         m_started = true;
         m_planning = false;
     }
+    if (!m_planning && !m_started) return false;
     if (m_planning) return false;
     if (m_started && !ctl.footManager_->footstepQueue().empty()) return false;
 
