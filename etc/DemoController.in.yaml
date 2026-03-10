@@ -314,7 +314,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: false
+    manualPhaseChange: true
     approachOffset: 0.05
     crouchOffset: 0.05
     leftGripperContactOffset: 0.1
@@ -490,7 +490,7 @@ states:
 
   Main:
     base: Parallel
-    states: [ Walk, Run ]
+    states: [ Walk, PickupBox0 ]
 
 transitions:
   - [ Initial, OK, Main, Auto ]
@@ -527,6 +527,8 @@ robots:
     module: env/ground
 
   rhps1:
+    init_pos:
+      translation: [ 1.2, 0.3, 0.8 ]
     PostureTask:
       jointWeights:
         CHEST_P: 50
