@@ -18,6 +18,8 @@ void GoTo::start(mc_control::fsm::Controller &ctl_)
 
     auto &ctl = static_cast<DemoController &>(ctl_);
 
+    ctl.footManager_->clearFootstepQueue();
+
     auto start = [&ctl, this]
     {
         goalFootMidpose_ = {m_destinationPoseWorld.x(), m_destinationPoseWorld.y(), m_destinationPoseWorld.z()};
@@ -38,11 +40,12 @@ bool GoTo::run(mc_control::fsm::Controller &ctl_)
 
     if (m_planning && footstepPlanner_->solution_.is_solved)
     {
+        mc_rtc::log::info("Footstep planner found solution");
         m_started = true;
         m_planning = false;
     }
     if (m_planning) return false;
-    if (!m_started || !ctl.footManager_->footstepQueue().empty()) return false;
+    if (m_started && !ctl.footManager_->footstepQueue().empty()) return false;
 
     output("OK");
     return true;
