@@ -273,27 +273,24 @@ states:
         theta_divide_num: 64
         xy_divide_step: 0.01 # [m]
         cost_scale: 1.0e3
-        theta_scale: 0 # [m/rad]
-        step_cost: 1.0
+        theta_scale: 1.0e5 # [m/rad]
+        step_cost: 100.0
         dijkstra_path_heuristic_expand_scale: 5.0
         nominal_foot_separation: 0.2 # [m]
         r2l_action_cont_list: # [m], [rad]
           [
             [ 0.175, 0, 0 ],
-            [ -0.025, 0, 0 ],
+            [ -0.015, 0, 0 ],
             [ 0, 0.025, 0 ],
             [ 0, -0.025, 0 ],
-            [ 0, 0, 0.10 ],
-            [ 0, 0, -0.10 ],
+            [ 0, 0, 0.1 ],
+            [ 0, 0, -0.1 ],
           ]
         r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
         r2l_reachable_max: [ 0.1, 0.1, 0.1745 ]  # [m], [rad]
         rect_obstacle_list:
-          # desk (at [2.0, 0.0], rotated 90 deg)
           - [ 1.85, 0.0, 0.525, 0.8 ]
-          # shelf0 (at [0.6, 1.0])
           - [ 0.6, 1.15, 0.8, 0.525 ]
-          # shelf1 (at [0.6, -1.5])
           - [ 0.6, -1.35, 0.8, 0.525 ]
 
   GoToBox0:
@@ -426,12 +423,29 @@ states:
       maxPlanningDuration: 1.0 # [sec]
       initialHeuristicsWeight: 10.0
 
-  GoToDrop1:
+  GoToDrop10:
+    autoStart: true
+    base: GoToConfigured
+    destinationPoseWorld: [ 0.6, 1.95, 1.57 ]
+    configs:
+      maxPlanningDuration: 100.0
+
+
+  GoToDrop11:
     autoStart: true
     base: GoToConfigured
     destinationPoseWorld: [ 0.6, 1.95, -1.57 ]
     configs:
-      maxPlanningDuration: 10.0
+      maxPlanningDuration: 100.0
+
+      
+  GoToDrop1:
+    base: Meta
+    Managed: false
+    StepByStep: true
+    ResetPostures: false
+    transitions:
+      - [ GoToDrop10, OK, GoToDrop11, Auto ]
 
   GoToDrop1AndHoldBox1:
     base: Parallel
