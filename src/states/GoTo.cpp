@@ -36,10 +36,12 @@ bool GoTo::run(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    if (m_planning) ctl.gui()->removeElement({"GraspMoveBox"}, "Start");
-
-    if (m_planning && footstepPlanner_->solution_.is_solved) m_started = true;
-
+    if (m_planning && footstepPlanner_->solution_.is_solved)
+    {
+        m_started = true;
+        m_planning = false;
+    }
+    if (m_planning) return false;
     if (!m_started || !ctl.footManager_->footstepQueue().empty()) return false;
 
     output("OK");
