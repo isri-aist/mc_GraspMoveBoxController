@@ -71,7 +71,7 @@ FootTaskList:
 
 FootManager:
   name: FootManager
-  footstepDuration: 0.9 # [sec]
+  footstepDuration: 1.1 # [sec]
   doubleSupportRatio: 0.15 # []
   deltaTransLimit: [ 0.1, 0.08, 7.5 ] # (x [m], y [m], theta [deg])
   midToFootTranss:
@@ -276,7 +276,7 @@ states:
         theta_scale: 0 # [m/rad]
         step_cost: 1.0
         dijkstra_path_heuristic_expand_scale: 5.0
-        nominal_foot_separation: 0.2 # [m]
+        nominal_foot_separation: 0.22 # [m]
         r2l_action_cont_list: # [m], [rad]
           [
             [ 0.175, 0, 0 ],
@@ -378,7 +378,7 @@ states:
   GoToBox1:
     autoStart: true
     base: GoToConfigured
-    destinationPoseWorld: [ 1.24, -0.3, 0.0 ]
+    destinationPoseWorld: [ 1.2, -0.3, 0.0 ]
 
   GoToBox1AndRaiseHands:
     base: Parallel
@@ -426,14 +426,14 @@ states:
   GoToDrop10:
     autoStart: true
     base: GoToConfigured
-    destinationPoseWorld: [ 0.6, 1.85, 1.57 ]
+    destinationPoseWorld: [ 0.6, 1.90, 1.57 ]
     configs:
       maxPlanningDuration: 100.0
 
   GoToDrop11:
     autoStart: true
     base: GoToConfigured
-    destinationPoseWorld: [ 0.6, 1.85, -1.57 ]
+    destinationPoseWorld: [ 0.6, 1.90, -1.57 ]
     configs:
       maxPlanningDuration: 100.0
 
