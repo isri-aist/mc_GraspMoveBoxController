@@ -164,9 +164,9 @@ CentroidalManager:
   useActualStateForMpc: false
   enableZmpFeedback: true
   enableComZFeedback: true
-  dcmGainP: 2.0 # It must be greater than 1 to be stable
+  dcmGainP: 3.0 # It must be greater than 1 to be stable
   zmpVelGain: 0.02
-  comZGainP: 20000.0
+  comZGainP: 9000.0
   comZGainD: 500.0
   refComZ: 0.94 # [m]
   useTargetPoseForControlRobotAnchorFrame: true
@@ -296,7 +296,7 @@ states:
   GoToBox0:
     base: GoToConfigured
     destinationPoseWorld: [ 1.2, 0.3, 0.0 ]
-    autoStart: true
+    autoStart: false
 
   GoToBox0AndRaiseHands:
     base: Parallel
@@ -344,7 +344,7 @@ states:
       initialHeuristicsWeight: 10.0
 
   GoToDrop0:
-    autoStart: true
+    autoStart: false
     base: GoToConfigured
     destinationPoseWorld: [ 0.6, -0.5, -1.57 ]
 
@@ -362,7 +362,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: false
+    manualPhaseChange: true
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
