@@ -266,6 +266,8 @@ states:
 
   ShoulderPose:
     base: ShoulderOrientation
+    leftShoulderAngle: 0.5
+    rightShoulderAngle: -0.5
 
   GoToConfigured:
     base: GoTo
@@ -279,7 +281,7 @@ states:
         theta_scale: 0 # [m/rad]
         step_cost: 1.0
         dijkstra_path_heuristic_expand_scale: 5.0
-        nominal_foot_separation: 0.22 # [m]
+        nominal_foot_separation: 0.24 # [m]
         r2l_action_cont_list: # [m], [rad]
           [
             [ 0.175, 0, 0 ],
@@ -369,7 +371,7 @@ states:
     stiffness: 2
     weight: 100000
     timeout: 3.0
-    completionEval: 0.05
+    completionEval: 0.1
     completionSpeed: 2.0e-3
     manualPhaseChange: true
     approachOffset: 0.05
@@ -482,7 +484,7 @@ states:
     stiffness: 2
     weight: 100000
     timeout: 3.0
-    completionEval: 0.05
+    completionEval: 0.1
     completionSpeed: 2.0e-3
     manualPhaseChange: true
     approachOffset: 0.05
