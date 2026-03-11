@@ -24,15 +24,15 @@ struct PickupBox : mc_control::fsm::State
             RaiseBox
         };
 
-        std::shared_ptr<mc_tasks::OrientationTask> m_leftElbowOrientationTask;
-        std::shared_ptr<mc_tasks::OrientationTask> m_rightElbowOrientationTask;
-        std::shared_ptr<mc_tasks::TransformTask>   m_leftGripperTask;
-        std::shared_ptr<mc_tasks::TransformTask>   m_rightGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask> m_rightGripperTask;
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_objectName;
         std::string m_objectSurfaceLeftGripper;
         std::string m_objectSurfaceRightGripper;
+        std::string m_gripperSurfaceLeftGripper  = "LeftHandSupportPlate";
+        std::string m_gripperSurfaceRightGripper = "RightHandSupportPlate";
 
         Phase m_phase = Phase::None;
 
@@ -43,8 +43,6 @@ struct PickupBox : mc_control::fsm::State
         double m_completionEval            = 0.05;
         double m_completionSpeed           = 1e-3;
         double m_boxHalfWidth              = 0.0;
-        double m_leftShoulderZAngle        = -5.0 * M_PI / 180.0;
-        double m_rightShoulderZAngle       = 5.0 * M_PI / 180.0;
         double m_crouchOffset              = 0.05;
         double m_leftGripperContactOffset  = 0.0;
         double m_rightGripperContactOffset = 0.0;
