@@ -299,7 +299,7 @@ states:
   GoToBox0:
     base: GoToConfigured
     destinationPoseWorld: [ 1.2, 0.3, 0.0 ]
-    autoStart: true
+    autoStart: false
 
   GoToBox0WithHands:
     base: Parallel
@@ -318,7 +318,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: false
+    manualPhaseChange: true
     approachOffset: 0.05
     crouchOffset: 0.05
     leftGripperContactOffset: 0.1
@@ -353,7 +353,7 @@ states:
     states: [ ShoulderPose, HoldBox0 ]
 
   GoToDrop0:
-    autoStart: true
+    autoStart: false
     base: GoToConfigured
     destinationPoseWorld: [ 0.6, -0.5, -1.57 ]
 
@@ -371,7 +371,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: false
+    manualPhaseChange: true
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
@@ -389,7 +389,7 @@ states:
     states: [ ShoulderPose, DropoffBox0 ]
 
   GoToBox1:
-    autoStart: true
+    autoStart: false
     base: GoToConfigured
     destinationPoseWorld: [ 1.2, -0.3, 0.0 ]
 
@@ -407,7 +407,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: false
+    manualPhaseChange: true
     approachOffset: 0.05
     crouchOffset: 0.05
     leftGripperContactOffset: 0.1
@@ -441,21 +441,21 @@ states:
       initialHeuristicsWeight: 10.0
 
   GoToDrop10:
-    autoStart: true
+    autoStart: false
     base: GoToConfigured
     destinationPoseWorld: [ -0.6, 1.15, 1.57 ]
     configs:
       maxPlanningDuration: 100.0
 
   GoToDrop11:
-    autoStart: true
+    autoStart: false
     base: GoToConfigured
     destinationPoseWorld: [ 0.0, 1.90, 0.0 ]
     configs:
       maxPlanningDuration: 100.0
 
   GoToDrop12:
-    autoStart: true
+    autoStart: false
     base: GoToConfigured
     destinationPoseWorld: [ 0.6, 1.90, -1.57 ]
     configs:
@@ -484,7 +484,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: false
+    manualPhaseChange: true
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
