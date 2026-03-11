@@ -34,8 +34,6 @@ void DropoffBox::configure(const mc_rtc::Configuration &config)
     config("rightDropPositionRobot", m_rightDropPositionRobot);
     config("leftOrientationBox", m_leftOrientationBox);
     config("rightOrientationBox", m_rightOrientationBox);
-    config("leftRaisePositionRobot", m_leftRaisePositionRobot);
-    config("rightRaisePositionRobot", m_rightRaisePositionRobot);
     config("leftOrientationRobot", m_leftOrientationRobot);
     config("rightOrientationRobot", m_rightOrientationRobot);
 
@@ -74,10 +72,14 @@ void DropoffBox::start(mc_control::fsm::Controller &ctl_)
     m_leftGripperTask =
             std::make_shared<mc_tasks::TransformTask>("LeftHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
+    m_leftGripperTask->target(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
+    ctl.solver().addTask(m_leftGripperTask);
 
     m_rightGripperTask =
             std::make_shared<mc_tasks::TransformTask>("RightHandSupportPlate", ctl.robots(), 0, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
+    m_rightGripperTask->target(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
+    ctl.solver().addTask(m_rightGripperTask);
 
     m_boxHalfWidth = 0.5 *
             (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
@@ -114,17 +116,13 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot().frame(m_robotReferenceFrame),
                 {m_leftOrientationRobot, m_leftDropPositionRobot + m_leftGraspOffsetRobot});
         ctl.solver().addTask(m_leftGripperTask);
-        m_leftGripperTask->target(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
-        ctl.solver().addTask(m_leftGripperTask);
 
         m_rightGripperTask->target(
                 ctl.robot().frame(m_robotReferenceFrame),
                 {m_rightOrientationRobot, m_rightDropPositionRobot + m_rightGraspOffsetRobot});
         ctl.solver().addTask(m_rightGripperTask);
-        m_rightGripperTask->target(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
-        ctl.solver().addTask(m_rightGripperTask);
 
-        ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), 1.0);
+        ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
     }
 
     bool completed =
@@ -160,6 +158,7 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::DropBox && completed)
     {
+        ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), m_crouchOffset * 20.0);
         output("OK");
         return true;
     }

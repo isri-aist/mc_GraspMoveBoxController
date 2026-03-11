@@ -71,9 +71,6 @@ struct DropoffBox : mc_control::fsm::State
         Eigen::Vector3d m_leftDropPositionRobot;
         Eigen::Vector3d m_rightDropPositionRobot;
 
-        Eigen::Vector3d m_leftRaisePositionRobot;
-        Eigen::Vector3d m_rightRaisePositionRobot;
-
         Eigen::Quaterniond m_leftOrientationRobot;
         Eigen::Quaterniond m_rightOrientationRobot;
 };
