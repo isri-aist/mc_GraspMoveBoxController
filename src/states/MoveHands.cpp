@@ -31,7 +31,7 @@ void MoveHands::start(mc_control::fsm::Controller &ctl_)
     ctl.solver().addTask(m_leftGripperTask);
 
     m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
-            "RightHandWrench", ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
+            m_rightHandFrame, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
     m_rightGripperTask->set_ef_pose({m_rightHandTargetOrientationRobot, m_rightHandTargetPositionRobot});
     ctl.solver().addTask(m_rightGripperTask);
