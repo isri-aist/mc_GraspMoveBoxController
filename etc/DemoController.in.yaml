@@ -443,11 +443,18 @@ states:
   GoToDrop10:
     autoStart: true
     base: GoToConfigured
-    destinationPoseWorld: [ 0.6, 1.90, 1.57 ]
+    destinationPoseWorld: [ -0.6, 1.15, 1.57 ]
     configs:
       maxPlanningDuration: 100.0
 
   GoToDrop11:
+    autoStart: true
+    base: GoToConfigured
+    destinationPoseWorld: [ 0.0, 1.90, 0.0 ]
+    configs:
+      maxPlanningDuration: 100.0
+
+  GoToDrop12:
     autoStart: true
     base: GoToConfigured
     destinationPoseWorld: [ 0.6, 1.90, -1.57 ]
@@ -461,6 +468,7 @@ states:
     ResetPostures: false
     transitions:
       - [ GoToDrop10, OK, GoToDrop11, Auto ]
+      - [ GoToDrop11, OK, GoToDrop12, Auto ]
 
   GoToDrop1WithBox1:
     base: Parallel
