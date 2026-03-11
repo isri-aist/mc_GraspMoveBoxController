@@ -179,30 +179,6 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::DropBox && completed)
     {
-        if (!m_allowPhaseChange) return false;
-        if (m_manualPhaseChange) m_allowPhaseChange = false;
-
-        mc_rtc::log::info("Now in remove hands phase");
-        m_phase = Phase::RemoveHands;
-
-        m_startTime = ctl.t();
-
-        ctl.solver().removeTask(m_leftElbowOrientationTask);
-        ctl.solver().removeTask(m_rightElbowOrientationTask);
-
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame), {m_leftOrientationRobot, m_leftRaisePositionRobot});
-
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame), {m_rightOrientationRobot, m_rightRaisePositionRobot});
-
-        ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), 1.0);
-
-        return false;
-    }
-
-    if (m_phase == Phase::RemoveHands && completed)
-    {
         output("OK");
         return true;
     }

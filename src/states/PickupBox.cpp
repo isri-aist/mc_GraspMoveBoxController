@@ -155,39 +155,6 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         if (!m_allowPhaseChange) return false;
         if (m_manualPhaseChange) m_allowPhaseChange = false;
 
-        mc_rtc::log::info("Now in raise hands phase");
-        m_phase = Phase::RaiseHands;
-
-        m_startTime = ctl.t();
-
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame), {m_leftOrientationRobot, m_leftRaisePositionRobot});
-        ctl.solver().addTask(m_leftGripperTask);
-
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame), {m_rightOrientationRobot, m_rightRaisePositionRobot});
-        ctl.solver().addTask(m_rightGripperTask);
-
-        return false;
-    }
-
-    bool completed =
-            (m_leftGripperTask->eval().norm() < m_completionEval &&
-             m_leftGripperTask->speed().norm() < m_completionSpeed &&
-             m_rightGripperTask->eval().norm() < m_completionEval &&
-             m_rightGripperTask->speed().norm() < m_completionSpeed);
-
-    if (m_phase == Phase::RaiseHands && m_startTime + m_timeout < ctl.t())
-    {
-        mc_rtc::log::info("raise hands timed out");
-        completed = true;
-    }
-
-    if (m_phase == Phase::RaiseHands && completed)
-    {
-        if (!m_allowPhaseChange) return false;
-        if (m_manualPhaseChange) m_allowPhaseChange = false;
-
         mc_rtc::log::info("Now in approach phase");
         m_phase = Phase::ApproachBox;
 
@@ -210,6 +177,13 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
 
         return false;
     }
+
+    bool completed =
+            (m_leftGripperTask->eval().norm() < m_completionEval &&
+             m_leftGripperTask->speed().norm() < m_completionSpeed &&
+             m_rightGripperTask->eval().norm() < m_completionEval &&
+             m_rightGripperTask->speed().norm() < m_completionSpeed);
+
 
     if (m_phase == Phase::ApproachBox && completed)
     {

@@ -10,8 +10,6 @@ The main configuration is `etc/DemoController.in.yaml`.
 
 ## TODO
 
-- De-duplicate `PickupBox`, `DropoffBox` and `RaiseHands` behaviors
-- Add self collision avoidance task (shoulders)
 - Tune footstep manager (double support ratio, etc)
 
 ## What is in this package
