@@ -1,4 +1,4 @@
-add_fsm_state_simple(GoTo)
+add_fsm_state(GoTo GoTo.cpp GoTo.hpp)
 
 target_link_libraries(
         GoTo PUBLIC
@@ -11,10 +11,11 @@ set_target_properties(GoTo PROPERTIES
         INSTALL_RPATH "${BWC_STATES_LIBRARIES}"
 )
 
-add_fsm_state_simple(MoveHands)
-add_fsm_state_simple(HoldBox)
+add_fsm_state(MoveHands MoveHands.cpp MoveHands.hpp)
+add_fsm_state(HoldBox HoldBox.cpp HoldBox.hpp)
+add_fsm_state(ShoulderOrientation ShoulderOrientation.cpp ShoulderOrientation.hpp)
 
-add_fsm_state_simple(PickupBox)
-add_fsm_state_simple(DropoffBox)
+add_fsm_state(PickupBox PickupBox.cpp PickupBox.hpp)
+add_fsm_state(DropoffBox DropoffBox.cpp DropoffBox.hpp)
 
 add_fsm_data_directory(data)
