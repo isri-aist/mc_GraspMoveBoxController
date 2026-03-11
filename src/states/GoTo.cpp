@@ -25,6 +25,7 @@ void GoTo::start(mc_control::fsm::Controller &ctl_)
         goalFootMidpose_ = {m_destinationPoseWorld.x(), m_destinationPoseWorld.y(), m_destinationPoseWorld.z()};
         triggered_       = true;
         m_planning       = true;
+        mc_rtc::log::info("Footstep planner triggered");
     };
 
     if (m_autoStart)
@@ -41,15 +42,17 @@ bool GoTo::run(mc_control::fsm::Controller &ctl_)
     if (m_planning && footstepPlanner_->solution_.is_solved)
     {
         mc_rtc::log::info("Footstep planner found solution");
-        m_started = true;
+        m_started  = true;
         m_planning = false;
     }
-    if (!m_planning && !m_started) return false;
-    if (m_planning) return false;
-    if (m_started && !ctl.footManager_->footstepQueue().empty()) return false;
 
-    output("OK");
-    return true;
+    if (m_started && ctl.footManager_->footstepQueue().empty())
+    {
+        output("OK");
+        return true;
+    }
+
+    return false;
 }
 
 void GoTo::teardown(mc_control::fsm::Controller &ctl_)
