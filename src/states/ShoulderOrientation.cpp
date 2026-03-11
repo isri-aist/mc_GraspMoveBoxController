@@ -22,21 +22,29 @@ void ShoulderOrientation::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
+    const auto &refFrameOri = ctl.robot().frame(m_robotReferenceFrame).position().rotation();
+
     m_leftElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
             ctl.robot().frame(m_leftShoulderFrame), m_stiffness, m_weight / 2);
     m_leftElbowOrientationTask->selectActiveJoints(ctl.solver(), m_leftShoulderActiveJoints);
-    m_leftElbowOrientationTask->orientation(sva::RotZ(m_leftShoulderZAngle));
+    m_leftElbowOrientationTask->orientation(refFrameOri * sva::RotZ(m_leftShoulderZAngle));
     ctl.solver().addTask(m_leftElbowOrientationTask);
 
     m_rightElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
             ctl.robot().frame(m_rightShoulderFrame), m_stiffness, m_weight / 2);
     m_rightElbowOrientationTask->selectActiveJoints(ctl.solver(), m_rightShoulderActiveJoints);
-    m_rightElbowOrientationTask->orientation(sva::RotZ(m_rightShoulderZAngle));
+    m_rightElbowOrientationTask->orientation(refFrameOri * sva::RotZ(m_rightShoulderZAngle));
     ctl.solver().addTask(m_rightElbowOrientationTask);
 }
 
 bool ShoulderOrientation::run(mc_control::fsm::Controller &ctl_)
 {
+    auto &ctl = static_cast<DemoController &>(ctl_);
+
+    const auto &refFrameOri = ctl.robot().frame(m_robotReferenceFrame).position().rotation();
+    m_leftElbowOrientationTask->orientation(refFrameOri * sva::RotZ(m_leftShoulderZAngle));
+    m_rightElbowOrientationTask->orientation(refFrameOri * sva::RotZ(m_rightShoulderZAngle));
+
     // is meant to run parallel
     return true;
 }
