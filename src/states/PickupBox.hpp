@@ -1,12 +1,13 @@
 #pragma once
 
+#include <Eigen/Core>
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/OrientationTask.h>
 #include <mc_tasks/TransformTask.h>
 
 #include "mc_control/Contact.h"
 
-struct DropoffBox : mc_control::fsm::State
+struct PickupBox : mc_control::fsm::State
 {
     public:
         void configure(const mc_rtc::Configuration &) override;
@@ -15,18 +16,18 @@ struct DropoffBox : mc_control::fsm::State
         void teardown(mc_control::fsm::Controller &) override;
 
     private:
-        enum class Phase
+        enum Phase
         {
             None,
-            LowerBox,
-            DropBox,
-            RemoveHands
+            ApproachBox,
+            GraspBox,
+            RaiseBox
         };
 
-        std::shared_ptr<mc_tasks::TransformTask>   m_leftGripperTask;
-        std::shared_ptr<mc_tasks::TransformTask>   m_rightGripperTask;
         std::shared_ptr<mc_tasks::OrientationTask> m_leftElbowOrientationTask;
         std::shared_ptr<mc_tasks::OrientationTask> m_rightElbowOrientationTask;
+        std::shared_ptr<mc_tasks::TransformTask>   m_leftGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask>   m_rightGripperTask;
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_objectName;
@@ -51,9 +52,12 @@ struct DropoffBox : mc_control::fsm::State
         double m_refComZ                   = 0.0;
 
         bool m_contactAdded            = false;
-        bool m_removeContactAtTeardown = true;
+        bool m_removeContactAtTeardown = false;
         bool m_manualPhaseChange       = false;
         bool m_allowPhaseChange        = true;
+
+        mc_control::Contact m_leftContact{};
+        mc_control::Contact m_rightContact{};
 
         Eigen::Vector3d m_leftGraspOffsetBox;
         Eigen::Vector3d m_rightGraspOffsetBox;
@@ -67,8 +71,8 @@ struct DropoffBox : mc_control::fsm::State
         Eigen::Vector3d m_leftGraspOffsetRobot;
         Eigen::Vector3d m_rightGraspOffsetRobot;
 
-        Eigen::Vector3d m_leftDropPositionRobot;
-        Eigen::Vector3d m_rightDropPositionRobot;
+        Eigen::Vector3d m_leftCarryPositionRobot;
+        Eigen::Vector3d m_rightCarryPositionRobot;
 
         Eigen::Vector3d m_leftRaisePositionRobot;
         Eigen::Vector3d m_rightRaisePositionRobot;

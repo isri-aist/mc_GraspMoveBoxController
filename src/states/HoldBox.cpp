@@ -1,4 +1,4 @@
-#include "HoldBox.h"
+#include "HoldBox.hpp"
 #include <mc_control/Contact.h>
 #include <mc_rtc/logging.h>
 #include "../DemoController.h"

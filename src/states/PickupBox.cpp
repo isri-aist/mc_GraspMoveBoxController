@@ -1,4 +1,4 @@
-#include "PickupBox.h"
+#include "PickupBox.hpp"
 #include "../DemoController.h"
 #include "./utils.h"
 

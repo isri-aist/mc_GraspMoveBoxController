@@ -1,4 +1,4 @@
-#include "DropoffBox.h"
+#include "DropoffBox.hpp"
 
 #include <Eigen/Geometry>
 #include <mc_rtc/gui/Label.h>

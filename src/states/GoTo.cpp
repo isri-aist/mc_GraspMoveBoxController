@@ -1,4 +1,4 @@
-#include "GoTo.h"
+#include "GoTo.hpp"
 #include "../DemoController.h"
 
 #include <BaselineWalkingController/FootManager.h>
