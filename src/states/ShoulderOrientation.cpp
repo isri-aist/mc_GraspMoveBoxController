@@ -4,7 +4,6 @@
 
 #include <BaselineWalkingController/CentroidalManager.h>
 #include <SpaceVecAlg/PTransform.h>
-#include <mc_rtc/gui/Label.h>
 #include <mc_tasks/CoMTask.h>
 #include <mc_tasks/TransformTask.h>
 
@@ -60,9 +59,6 @@ void ShoulderOrientation::setOrientationTaskGoal(mc_control::fsm::Controller &ct
 
     const Eigen::Matrix3d leftRotation  = sva::RotX(m_leftShoulderAngle);
     const Eigen::Matrix3d rightRotation = sva::RotX(m_rightShoulderAngle);
-
-    const Eigen::Matrix3d leftFinal = leftRotation * leftReferenceFrame;
-    const Eigen::Matrix3d rightFinal = rightRotation * rightReferenceFrame;
 
     m_leftElbowOrientationTask->orientation(leftRotation * leftReferenceFrame);
     m_rightElbowOrientationTask->orientation(rightRotation * rightReferenceFrame);
