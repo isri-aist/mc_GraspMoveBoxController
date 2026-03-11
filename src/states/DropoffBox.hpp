@@ -53,7 +53,7 @@ struct DropoffBox : mc_control::fsm::State
 
         bool m_contactAdded            = false;
         bool m_removeContactAtTeardown = true;
-        bool m_manualPhaseChange       = false;
+        bool m_manualPhaseChange       = true;
         bool m_allowPhaseChange        = true;
 
         Eigen::Vector3d m_leftGraspOffsetBox;

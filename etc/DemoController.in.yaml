@@ -262,12 +262,15 @@ states:
     base: MoveHands
     leftHandTargetPositionRobot: [ 0.1, 0.3, -0. ]
     rightHandTargetPositionRobot: [ 0.1, -0.3, -0. ]
-    weight: 10000
+    weight: 5000
+    stiffness: 5
 
   ShoulderPose:
     base: ShoulderOrientation
-    leftShoulderAngle: 0.5
-    rightShoulderAngle: -0.5
+    leftShoulderAngle: 0.3
+    rightShoulderAngle: -0.3
+    weight: 1000
+    stiffness: 5
 
   GoToConfigured:
     base: GoTo
@@ -281,7 +284,7 @@ states:
         theta_scale: 0 # [m/rad]
         step_cost: 1.0
         dijkstra_path_heuristic_expand_scale: 5.0
-        nominal_foot_separation: 0.24 # [m]
+        nominal_foot_separation: 0.3 # [m]
         r2l_action_cont_list: # [m], [rad]
           [
             [ 0.175, 0, 0 ],
@@ -300,8 +303,7 @@ states:
 
   GoToBox0:
     base: GoToConfigured
-    destinationPoseWorld: [ 1.2, 0.3, 0.0 ]
-    autoStart: false
+    destinationPoseWorld: [ 1.25, 0.3, 0.0 ]
 
   GoToBox0WithHands:
     base: Parallel
@@ -315,12 +317,11 @@ states:
     objectName: zbox0
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
-    stiffness: 2
-    weight: 100000
+    stiffness: 10
+    weight: 10000
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: true
     approachOffset: 0.05
     crouchOffset: 0.05
     leftGripperContactOffset: 0.1
@@ -341,7 +342,7 @@ states:
   HoldBox0:
     base: HoldBox
     stiffness: 2
-    weight: 4000
+    weight: 1000
     objectName: zbox0
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
@@ -354,10 +355,21 @@ states:
     base: Parallel
     states: [ ShoulderPose, HoldBox0 ]
 
-  GoToDrop0:
-    autoStart: false
+  GoToDrop00:
     base: GoToConfigured
-    destinationPoseWorld: [ 0.6, -0.5, -1.57 ]
+    destinationPoseWorld: [ 1.05, 0.3, 0.0 ]
+
+  GoToDrop01:
+    base: GoToConfigured
+    destinationPoseWorld: [ 0.6, -0.60, -1.57 ]
+
+  GoToDrop0:
+    base: Meta
+    Managed: false
+    StepByStep: true
+    ResetPostures: false
+    transitions:
+      - [ GoToDrop00, OK, GoToDrop01, Auto]
 
   GoToDrop0WithBox0:
     base: Parallel
@@ -369,18 +381,17 @@ states:
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
     stiffness: 2
-    weight: 100000
+    weight: 1000
     timeout: 3.0
     completionEval: 0.1
     completionSpeed: 2.0e-3
-    manualPhaseChange: true
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
     leftRaisePositionRobot: [ 0., 0.3, -0.1 ]
     rightRaisePositionRobot: [ 0., -0.3, -0.1 ]
-    leftDropPositionRobot: [ 0.4, 0.0, -0.2 ] # y value is automatically set with box width
-    rightDropPositionRobot: [ 0.4, 0.0, -0.2 ]
+    leftDropPositionRobot: [ 0.3, 0.0, -0.2 ] # y value is automatically set with box width
+    rightDropPositionRobot: [ 0.3, 0.0, -0.2 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
@@ -390,10 +401,21 @@ states:
     base: Parallel
     states: [ ShoulderPose, DropoffBox0 ]
 
-  GoToBox1:
-    autoStart: false
+  GoToBox10:
     base: GoToConfigured
-    destinationPoseWorld: [ 1.2, -0.3, 0.0 ]
+    destinationPoseWorld: [ 0.6, -0.30, -1.57 ]
+
+  GoToBox11:
+    base: GoToConfigured
+    destinationPoseWorld: [ 1.25, -0.3, 0.0 ]
+
+  GoToBox1:
+    base: Meta
+    Managed: false
+    StepByStep: true
+    ResetPostures: false
+    transitions:
+      - [ GoToBox10, OK, GoToBox11, Auto]
 
   GoToBox1WithHands:
     base: Parallel
@@ -404,18 +426,17 @@ states:
     objectName: zbox1
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
-    stiffness: 2
-    weight: 100000
+    stiffness: 10
+    weight: 10000
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    manualPhaseChange: true
     approachOffset: 0.05
     crouchOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
-    leftRaisePositionRobot: [ 0.15, 0.3, -0.2 ]
-    rightRaisePositionRobot: [ 0.15, -0.3, -0.2 ]
+    leftRaisePositionRobot: [ 0.15, 0.3, -0. ]
+    rightRaisePositionRobot: [ 0.15, -0.3, -0. ]
     leftCarryPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
     rightCarryPositionRobot: [ 0.3, 0.0, -0. ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
@@ -430,7 +451,7 @@ states:
   HoldBox1:
     base: HoldBox
     stiffness: 2
-    weight: 4000
+    weight: 1000
     objectName: zbox1
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
@@ -443,23 +464,20 @@ states:
       initialHeuristicsWeight: 10.0
 
   GoToDrop10:
-    autoStart: false
     base: GoToConfigured
     destinationPoseWorld: [ -0.6, 1.15, 1.57 ]
     configs:
       maxPlanningDuration: 100.0
 
   GoToDrop11:
-    autoStart: false
     base: GoToConfigured
-    destinationPoseWorld: [ 0.0, 1.90, 0.0 ]
+    destinationPoseWorld: [ 0.0, 2.0, 0.0 ]
     configs:
       maxPlanningDuration: 100.0
 
   GoToDrop12:
-    autoStart: false
     base: GoToConfigured
-    destinationPoseWorld: [ 0.6, 1.90, -1.57 ]
+    destinationPoseWorld: [ 0.6, 1.80, -1.57 ]
     configs:
       maxPlanningDuration: 100.0
 
@@ -482,18 +500,17 @@ states:
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
     stiffness: 2
-    weight: 100000
+    weight: 1000
     timeout: 3.0
     completionEval: 0.1
     completionSpeed: 2.0e-3
-    manualPhaseChange: true
     approachOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
     leftRaisePositionRobot: [ 0., 0.3, -0.1 ]
     rightRaisePositionRobot: [ 0., -0.3, -0.1 ]
-    leftDropPositionRobot: [ 0.4, 0.0, -0.2 ] # y value is automatically set with box width
-    rightDropPositionRobot: [ 0.4, 0.0, -0.2 ]
+    leftDropPositionRobot: [ 0.3, 0.0, -0.2 ] # y value is automatically set with box width
+    rightDropPositionRobot: [ 0.3, 0.0, -0.2 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
