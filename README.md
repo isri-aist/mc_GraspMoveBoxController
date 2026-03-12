@@ -2,7 +2,9 @@
 
 FSM controller for biped loco-manipulation with `mc_rtc`.
 
-This project defines a controller plugin named `DemoController` (from `src/lib.cpp`) that extends `BWC::BaselineWalkingController` and runs a scripted scenario:
+This project defines a controller plugin named `DemoController` (from `src/lib.cpp`) that extends
+`BWC::BaselineWalkingController` and runs a scripted scenario:
+
 - walk to box 0 -> pick it up -> carry and drop it,
 - walk to box 1 -> pick it up -> carry and drop it.
 
@@ -25,6 +27,7 @@ The main configuration is `etc/DemoController.in.yaml`.
 ## Dependencies
 
 At build time this package expects:
+
 - `mc_rtc`
 - `baseline_walking_controller`
 - `baseline_footstep_planner`
@@ -45,6 +48,7 @@ cmake --install sandbox/mc_GraspMoveBoxController/build
 Set your mc_rtc controller selection so `Enabled` is `DemoController` in your `mc_rtc.yaml`.
 
 Typical local config location is:
+
 - `~/.config/mc_rtc/mc_rtc.yaml`
 
 Example snippet:

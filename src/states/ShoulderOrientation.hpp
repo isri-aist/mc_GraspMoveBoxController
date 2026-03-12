@@ -19,14 +19,14 @@ struct ShoulderOrientation : mc_control::fsm::State
         std::string m_leftReferenceFrame  = "L_SHOULDER_R_LINK";
         std::string m_rightReferenceFrame = "R_SHOULDER_R_LINK";
 
-        std::string m_leftShoulderFrame   = "L_SHOULDER_Y_LINK";
-        std::string m_rightShoulderFrame  = "R_SHOULDER_Y_LINK";
+        std::string m_leftShoulderFrame  = "L_SHOULDER_Y_LINK";
+        std::string m_rightShoulderFrame = "R_SHOULDER_Y_LINK";
 
         std::vector<std::string> m_leftShoulderActiveJoints  = {"L_SHOULDER_R"};
         std::vector<std::string> m_rightShoulderActiveJoints = {"R_SHOULDER_R"};
 
-        double m_stiffness           = 2.0;
-        double m_weight              = 2000.0;
+        double m_stiffness          = 2.0;
+        double m_weight             = 2000.0;
         double m_leftShoulderAngle  = 5.0 * M_PI / 180.0;
         double m_rightShoulderAngle = -5.0 * M_PI / 180.0;
 
