@@ -284,7 +284,7 @@ states:
         theta_scale: 0 # [m/rad]
         step_cost: 1.0
         dijkstra_path_heuristic_expand_scale: 5.0
-        nominal_foot_separation: 0.3 # [m]
+        nominal_foot_separation: 0.2 # [m]
         r2l_action_cont_list: # [m], [rad]
           [
             [ 0.175, 0, 0 ],
@@ -301,9 +301,20 @@ states:
           - [ 0.6, 1.15, 0.99, 0.625 ]
           - [ 0.6, -1.35, 0.99, 0.625 ]
 
-  GoToBox0:
+  GoToBox00: # start at [ 0.0, 0.0, 0.0 ]
+    base: GoToConfigured
+    destinationPoseWorld: [ 1.0, 0.3, 0.0 ]
+  GoToBox01:
     base: GoToConfigured
     destinationPoseWorld: [ 1.25, 0.3, 0.0 ]
+
+  GoToBox0:
+    base: Meta
+    Managed: false
+    StepByStep: true
+    ResetPostures: false
+    transitions:
+      - [ GoToBox00, OK, GoToBox01, Auto ]
 
   GoToBox0WithHands:
     base: Parallel
@@ -355,11 +366,16 @@ states:
     base: Parallel
     states: [ ShoulderPose, HoldBox0 ]
 
-  GoToDrop00:
+  GoToDrop00: # start at [ 1.25, 0.3, 0.0 ]
     base: GoToConfigured
-    destinationPoseWorld: [ 1.05, 0.3, 0.0 ]
-
+    destinationPoseWorld: [ 1.0, 0.3, 0.0 ]
   GoToDrop01:
+    base: GoToConfigured
+    destinationPoseWorld: [ 1.0, 0.3, -1.57 ]
+    configs:
+      footstepPlanner:
+        nominal_foot_separation: 0.3
+  GoToDrop02:
     base: GoToConfigured
     destinationPoseWorld: [ 0.6, -0.55, -1.57 ]
 
@@ -370,6 +386,7 @@ states:
     ResetPostures: false
     transitions:
       - [ GoToDrop00, OK, GoToDrop01, Auto ]
+      - [ GoToDrop01, OK, GoToDrop02, Auto ]
 
   GoToDrop0WithBox0:
     base: Parallel
@@ -401,11 +418,16 @@ states:
     base: Parallel
     states: [ ShoulderPose, DropoffBox0 ]
 
-  GoToBox10:
+  GoToBox10: # start at [ 0.6, -0.55, -1.57 ]
     base: GoToConfigured
-    destinationPoseWorld: [ 0.6, -0.30, -1.57 ]
-
+    destinationPoseWorld: [ 0.6, -0.3, -1.57 ]
   GoToBox11:
+    base: GoToConfigured
+    destinationPoseWorld: [ 0.6, -0.3, 0.0 ]
+    configs:
+      footstepPlanner:
+        nominal_foot_separation: 0.3
+  GoToBox12:
     base: GoToConfigured
     destinationPoseWorld: [ 1.25, -0.3, 0.0 ]
 
@@ -416,6 +438,7 @@ states:
     ResetPostures: false
     transitions:
       - [ GoToBox10, OK, GoToBox11, Auto ]
+      - [ GoToBox11, OK, GoToBox12, Auto ]
 
   GoToBox1WithHands:
     base: Parallel
@@ -463,23 +486,35 @@ states:
       maxPlanningDuration: 1.0 # [sec]
       initialHeuristicsWeight: 10.0
 
-  GoToDrop10:
+  GoToDrop10: # start at [ 1.25, -0.3, 0.0 ]
     base: GoToConfigured
-    destinationPoseWorld: [ -0.6, 1.15, 1.57 ]
-    configs:
-      maxPlanningDuration: 100.0
-
+    destinationPoseWorld: [ 1.0, -0.3, 0.0 ]
   GoToDrop11:
     base: GoToConfigured
-    destinationPoseWorld: [ 0.0, 2.0, 0.0 ]
+    destinationPoseWorld: [ 1.25, -0.3, 3.14 ]
+    configs:
+      footstepPlanner:
+        nominal_foot_separation: 0.3
+  GoToDrop12:
+    base: GoToConfigured
+    destinationPoseWorld: [ -0.6, 2.0, 1.57 ]
     configs:
       maxPlanningDuration: 100.0
-
-  GoToDrop12:
+  GoToDrop13:
+    base: GoToConfigured
+    destinationPoseWorld: [ -0.6, 2.0, 0.0 ]
+    configs:
+      footstepPlanner:
+        nominal_foot_separation: 0.3
+  GoToDrop14:
+    base: GoToConfigured
+    destinationPoseWorld: [ 0.6, 2.0, 0.0 ]
+  GoToDrop15:
     base: GoToConfigured
     destinationPoseWorld: [ 0.6, 1.80, -1.57 ]
     configs:
-      maxPlanningDuration: 100.0
+      footstepPlanner:
+        nominal_foot_separation: 0.3
 
   GoToDrop1:
     base: Meta
@@ -489,6 +524,9 @@ states:
     transitions:
       - [ GoToDrop10, OK, GoToDrop11, Auto ]
       - [ GoToDrop11, OK, GoToDrop12, Auto ]
+      - [ GoToDrop12, OK, GoToDrop13, Auto ]
+      - [ GoToDrop13, OK, GoToDrop14, Auto ]
+      - [ GoToDrop14, OK, GoToDrop15, Auto ]
 
   GoToDrop1WithBox1:
     base: Parallel
