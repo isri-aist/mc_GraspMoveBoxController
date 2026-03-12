@@ -322,7 +322,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    approachOffset: 0.05
+    approachOffset: 0.1
     crouchOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
@@ -361,7 +361,7 @@ states:
 
   GoToDrop01:
     base: GoToConfigured
-    destinationPoseWorld: [ 0.6, -0.60, -1.57 ]
+    destinationPoseWorld: [ 0.6, -0.55, -1.57 ]
 
   GoToDrop0:
     base: Meta
@@ -369,7 +369,7 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [ GoToDrop00, OK, GoToDrop01, Auto]
+      - [ GoToDrop00, OK, GoToDrop01, Auto ]
 
   GoToDrop0WithBox0:
     base: Parallel
@@ -384,8 +384,8 @@ states:
     weight: 1000
     timeout: 3.0
     completionEval: 0.1
-    completionSpeed: 2.0e-3
-    approachOffset: 0.05
+    completionSpeed: 1.0e-4
+    approachOffset: 0.1
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
     leftRaisePositionRobot: [ 0., 0.3, -0.1 ]
@@ -415,7 +415,7 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [ GoToBox10, OK, GoToBox11, Auto]
+      - [ GoToBox10, OK, GoToBox11, Auto ]
 
   GoToBox1WithHands:
     base: Parallel
@@ -431,7 +431,7 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
-    approachOffset: 0.05
+    approachOffset: 0.1
     crouchOffset: 0.05
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
@@ -504,7 +504,7 @@ states:
     timeout: 3.0
     completionEval: 0.1
     completionSpeed: 2.0e-3
-    approachOffset: 0.05
+    approachOffset: 0.1
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
     leftRaisePositionRobot: [ 0., 0.3, -0.1 ]
@@ -518,7 +518,7 @@ states:
 
   DropoffBox1WithShoulders:
     base: Parallel
-    states: [ ShoulderPose, DropoffBox1]
+    states: [ ShoulderPose, DropoffBox1 ]
 
   Run:
     base: Meta
