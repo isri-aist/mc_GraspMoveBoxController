@@ -44,7 +44,6 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     m_leftApproachOffsetBox  = {0.0, 0.0, m_approachOffset};
     m_rightApproachOffsetBox = {0.0, 0.0, m_approachOffset};
 
-    m_contactAdded     = false;
     m_allowPhaseChange = !m_manualPhaseChange;
 }
 
@@ -167,7 +166,7 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         return false;
     }
 
-    bool completed =
+    const bool completed = (m_allowPhaseChange && m_manualPhaseChange) ||
             (m_leftGripperTask->eval().norm() < m_completionEval &&
              m_leftGripperTask->speed().norm() < m_completionSpeed &&
              m_rightGripperTask->eval().norm() < m_completionEval &&
