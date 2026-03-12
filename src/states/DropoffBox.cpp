@@ -173,15 +173,19 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
             m_contactAdded = false;
         }
 
+        auto leftOffsetRotation  = sva::RotZ(-mc_rtc::constants::PI / 2);
+        auto rightOffsetRotation = sva::RotZ(mc_rtc::constants::PI / 2);
+
         m_leftGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceLeftGripper,
-                {m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
+                {leftOffsetRotation * m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
 
         m_rightGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
-                {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
+                {rightOffsetRotation * m_rightOrientationBox,
+                 (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
     }
 
     if (m_phase == Phase::DropBox && completed)
