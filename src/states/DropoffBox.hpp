@@ -24,8 +24,6 @@ struct DropoffBox : mc_control::fsm::State
 
         std::shared_ptr<mc_tasks::TransformTask>   m_leftGripperTask;
         std::shared_ptr<mc_tasks::TransformTask>   m_rightGripperTask;
-        std::shared_ptr<mc_tasks::OrientationTask> m_leftElbowOrientationTask;
-        std::shared_ptr<mc_tasks::OrientationTask> m_rightElbowOrientationTask;
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_objectName;
@@ -38,13 +36,9 @@ struct DropoffBox : mc_control::fsm::State
 
         double m_stiffness                 = 2.0;
         double m_weight                    = 2000.0;
-        double m_startTime                 = 0.0;
-        double m_timeout                   = 5.0;
         double m_completionEval            = 0.05;
         double m_completionSpeed           = 1e-3;
         double m_boxHalfWidth              = 0.0;
-        double m_leftShoulderZAngle        = -5.0 * M_PI / 180.0;
-        double m_rightShoulderZAngle       = 5.0 * M_PI / 180.0;
         double m_crouchOffset              = 0.05;
         double m_leftGripperContactOffset  = 0.0;
         double m_rightGripperContactOffset = 0.0;

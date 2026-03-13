@@ -38,8 +38,6 @@ struct PickupBox : mc_control::fsm::State
 
         double m_stiffness                 = 2.0;
         double m_weight                    = 2000.0;
-        double m_startTime                 = 0.0;
-        double m_timeout                   = 5.0;
         double m_completionEval            = 0.05;
         double m_completionSpeed           = 1e-3;
         double m_boxHalfWidth              = 0.0;
@@ -71,9 +69,6 @@ struct PickupBox : mc_control::fsm::State
 
         Eigen::Vector3d m_leftCarryPositionRobot;
         Eigen::Vector3d m_rightCarryPositionRobot;
-
-        Eigen::Vector3d m_leftRaisePositionRobot;
-        Eigen::Vector3d m_rightRaisePositionRobot;
 
         Eigen::Quaterniond m_leftOrientationRobot;
         Eigen::Quaterniond m_rightOrientationRobot;

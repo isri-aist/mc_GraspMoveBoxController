@@ -18,7 +18,6 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
-    config("timeout", m_timeout);
     config("completionEval", m_completionEval);
     config("completionSpeed", m_completionSpeed);
     config("crouchOffset", m_crouchOffset);
@@ -31,8 +30,6 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("rightCarryPositionRobot", m_rightCarryPositionRobot);
     config("leftOrientationBox", m_leftOrientationBox);
     config("rightOrientationBox", m_rightOrientationBox);
-    config("leftRaisePositionRobot", m_leftRaisePositionRobot);
-    config("rightRaisePositionRobot", m_rightRaisePositionRobot);
     config("leftOrientationRobot", m_leftOrientationRobot);
     config("rightOrientationRobot", m_rightOrientationRobot);
 

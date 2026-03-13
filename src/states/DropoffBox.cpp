@@ -19,11 +19,8 @@ void DropoffBox::configure(const mc_rtc::Configuration &config)
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
-    config("timeout", m_timeout);
     config("completionEval", m_completionEval);
     config("completionSpeed", m_completionSpeed);
-    config("leftShoulderZAngle", m_leftShoulderZAngle);
-    config("rightShoulderZAngle", m_rightShoulderZAngle);
     config("crouchOffset", m_crouchOffset);
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
     config("manualPhaseChange", m_manualPhaseChange);
@@ -199,8 +196,7 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
     auto &ctl = static_cast<DemoController &>(ctl_);
 
     ctl.gui()->addElement(
-            {"GMB", "Dropoff"},
-            mc_rtc::gui::Button("Next Phase", [this] { m_phaseAdvanceRequested = true; }));
+            {"GMB", "Dropoff"}, mc_rtc::gui::Button("Next Phase", [this] { m_phaseAdvanceRequested = true; }));
 
     ctl.gui()->addElement(
             {"GMB", "Dropoff"},
