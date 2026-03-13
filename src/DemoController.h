@@ -11,4 +11,6 @@ struct DemoController_DLLAPI DemoController : public BWC::BaselineWalkingControl
         bool run() override;
 
         void reset(const mc_control::ControllerResetData &reset_data) override;
+
+        double m_refCoMZ = 0.94;
 };

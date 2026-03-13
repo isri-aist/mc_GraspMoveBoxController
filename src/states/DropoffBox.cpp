@@ -82,7 +82,6 @@ void DropoffBox::start(mc_control::fsm::Controller &ctl_)
 
     m_leftDropPositionRobot.y()  = m_boxHalfWidth;
     m_rightDropPositionRobot.y() = -m_boxHalfWidth;
-    m_refComZ                    = ctl.comTask_->com().z();
 
     applyParameters(ctl_);
     addToGui(ctl_);
@@ -227,7 +226,7 @@ void DropoffBox::applyParameters(mc_control::fsm::Controller &ctl_)
 
         if (!m_comZChanged)
         {
-            ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
             m_comZChanged = true;
         }
     }
@@ -262,7 +261,7 @@ void DropoffBox::applyParameters(mc_control::fsm::Controller &ctl_)
 
         if (!m_comZChanged)
         {
-            ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t(), m_crouchOffset * 20.0);
             m_comZChanged = true;
         }
     }
@@ -356,7 +355,6 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::Label("Gripper right surface: ", [this] { return m_gripperSurfaceRightGripper; }),
             mc_rtc::gui::Label("Completion eval: ", [this] { return m_completionEval; }),
             mc_rtc::gui::Label("Completion speed: ", [this] { return m_completionSpeed; }),
-            mc_rtc::gui::Label("Stored CoM Z: ", [this] { return m_refComZ; }),
             mc_rtc::gui::Label(
                     "Contact added: ", [this, boolToString] { return std::string{boolToString(m_contactAdded)}; }),
             mc_rtc::gui::Label(
@@ -396,7 +394,6 @@ void DropoffBox::removeFromGui(mc_control::fsm::Controller &ctl_)
     ctl.gui()->removeElement({"GMB", "Dropoff"}, "Current Phase: ");
     ctl.gui()->removeElement({"GMB", "Dropoff"}, "Completion eval: ");
     ctl.gui()->removeElement({"GMB", "Dropoff"}, "Completion speed: ");
-    ctl.gui()->removeElement({"GMB", "Dropoff"}, "Stored CoM Z: ");
     ctl.gui()->removeElement({"GMB", "Dropoff"}, "Contact added: ");
     ctl.gui()->removeElement({"GMB", "Dropoff"}, "Remove contact at teardown: ");
     ctl.gui()->removeElement({"GMB", "Dropoff"}, "Manual phase change");

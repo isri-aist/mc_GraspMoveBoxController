@@ -3,6 +3,7 @@
 DemoController::DemoController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration &config)
     : BWC::BaselineWalkingController(rm, dt, config)
 {
+    config("CentroidalManager")("refComZ", m_refCoMZ);
     mc_rtc::log::success("DemoController init done ");
 }
 

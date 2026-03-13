@@ -74,7 +74,6 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
 
     m_leftCarryPositionRobot.y()  = m_boxHalfWidth;
     m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
-    m_refComZ                     = ctl.comTask_->com().z();
 
     applyParameters(ctl_);
     addToGui(ctl_);
@@ -211,7 +210,7 @@ void PickupBox::applyParameters(mc_control::fsm::Controller &ctl_)
 
         if (!m_comZChanged)
         {
-            ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t() + 1e-1, m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1e-1, m_crouchOffset * 20.0);
             m_comZChanged = true;
         }
     }
@@ -239,7 +238,7 @@ void PickupBox::applyParameters(mc_control::fsm::Controller &ctl_)
 
         if (!m_comZChanged)
         {
-            ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t() + 1e-1, m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1e-1, m_crouchOffset * 20.0);
             m_comZChanged = true;
         }
     }
@@ -336,7 +335,7 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
                     [this](double value)
                     {
                         m_crouchOffset = value;
-                        m_comZChanged = false;
+                        m_comZChanged  = false;
                     }),
             mc_rtc::gui::NumberInput(
                     "Stiffness", [this] { return m_stiffness; }, [this](double value) { m_stiffness = value; }),
@@ -353,7 +352,6 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::Label("Gripper right surface: ", [this] { return m_gripperSurfaceRightGripper; }),
             mc_rtc::gui::Label("Completion eval: ", [this] { return std::to_string(m_completionEval); }),
             mc_rtc::gui::Label("Completion speed: ", [this] { return std::to_string(m_completionSpeed); }),
-            mc_rtc::gui::Label("Stored CoM Z: ", [this] { return std::to_string(m_refComZ); }),
             mc_rtc::gui::Label(
                     "Contact added: ", [this, &boolToString] { return std::string{boolToString(m_contactAdded)}; }),
             mc_rtc::gui::Label(
@@ -393,7 +391,6 @@ void PickupBox::removeFromGui(mc_control::fsm::Controller &ctl_)
     ctl.gui()->removeElement({"GMB", "Pickup"}, "Current Phase: ");
     ctl.gui()->removeElement({"GMB", "Pickup"}, "Completion eval: ");
     ctl.gui()->removeElement({"GMB", "Pickup"}, "Completion speed: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Stored CoM Z: ");
     ctl.gui()->removeElement({"GMB", "Pickup"}, "Contact added: ");
     ctl.gui()->removeElement({"GMB", "Pickup"}, "Remove contact at teardown: ");
     ctl.gui()->removeElement({"GMB", "Pickup"}, "Manual phase change: ");

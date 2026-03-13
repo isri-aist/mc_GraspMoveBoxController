@@ -44,7 +44,6 @@ struct PickupBox : mc_control::fsm::State
         double m_leftGripperContactOffset  = 0.0;
         double m_rightGripperContactOffset = 0.0;
         double m_approachOffset            = 0.0;
-        double m_refComZ                   = 0.0;
 
         bool m_contactAdded            = false;
         bool m_removeContactAtTeardown = false;
