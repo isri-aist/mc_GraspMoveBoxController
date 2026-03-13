@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mc_control/fsm/State.h>
-#include <mc_tasks/OrientationTask.h>
 #include <mc_tasks/TransformTask.h>
 
 #include "mc_control/Contact.h"
@@ -71,6 +70,4 @@ struct DropoffBox : mc_control::fsm::State
 
         void addToGui(mc_control::fsm::Controller &);
         void removeFromGui(mc_control::fsm::Controller &);
-        void applyOffsets();
-        void applyParameters(mc_control::fsm::Controller &);
 };

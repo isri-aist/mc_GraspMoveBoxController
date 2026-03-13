@@ -74,6 +74,4 @@ struct PickupBox : mc_control::fsm::State
 
         void addToGui(mc_control::fsm::Controller &);
         void removeFromGui(mc_control::fsm::Controller &);
-        void applyOffsets();
-        void applyParameters(mc_control::fsm::Controller &);
 };

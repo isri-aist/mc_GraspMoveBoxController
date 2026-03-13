@@ -29,10 +29,6 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("rightOrientationBox", m_rightOrientationBox);
     config("leftOrientationRobot", m_leftOrientationRobot);
     config("rightOrientationRobot", m_rightOrientationRobot);
-
-    applyOffsets();
-
-    m_phaseAdvanceRequested = false;
 }
 
 void PickupBox::start(mc_control::fsm::Controller &ctl_)
@@ -75,15 +71,12 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_leftCarryPositionRobot.y()  = m_boxHalfWidth;
     m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
 
-    applyParameters(ctl_);
     addToGui(ctl_);
 }
 
 bool PickupBox::run(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
-
-    applyParameters(ctl_);
 
     // This is a hack to ensure the object is visible in mc_mujoco because for some reason the
     // box position does not change in the visualization
@@ -106,57 +99,120 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
-    if (m_phase == Phase::None)
+    m_leftGraspOffsetRobot  = {0.0, m_leftGripperContactOffset, 0.0};
+    m_leftGraspOffsetBox    = {0.0, 0.0, m_leftGripperContactOffset};
+    m_rightGraspOffsetRobot = {0.0, -m_rightGripperContactOffset, 0.0};
+    m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
+
+    m_leftApproachOffsetBox  = {0.0, 0.0, m_approachOffset};
+    m_rightApproachOffsetBox = {0.0, 0.0, m_approachOffset};
+
+    if (m_leftGripperTask)
     {
-        if (m_manualPhaseChange && !m_phaseAdvanceRequested) return false;
+        m_leftGripperTask->stiffness(m_stiffness);
+        m_leftGripperTask->weight(m_weight);
+    }
+    if (m_rightGripperTask)
+    {
+        m_rightGripperTask->stiffness(m_stiffness);
+        m_rightGripperTask->weight(m_weight);
+    }
+
+    const bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
+            m_leftGripperTask->speed().norm() < m_completionSpeed &&
+            m_rightGripperTask->eval().norm() < m_completionEval &&
+            m_rightGripperTask->speed().norm() < m_completionSpeed;
+    bool goToNextPhase = m_phaseAdvanceRequested || (!m_manualPhaseChange && taskCompleted);
+
+    if (m_phase == Phase::None && (!m_manualPhaseChange || m_phaseAdvanceRequested))
+    {
         m_phaseAdvanceRequested = false;
 
         mc_rtc::log::info("Now in approach phase");
         m_phase = Phase::ApproachBox;
 
         m_comZChanged = false;
-
-        return false;
     }
 
-    const bool completionReached = m_leftGripperTask->eval().norm() < m_completionEval &&
-            m_leftGripperTask->speed().norm() < m_completionSpeed &&
-            m_rightGripperTask->eval().norm() < m_completionEval &&
-            m_rightGripperTask->speed().norm() < m_completionSpeed;
-    const bool completed = m_phaseAdvanceRequested || (!m_manualPhaseChange && completionReached);
-
-    if (m_phase == Phase::ApproachBox && completed)
+    if (m_phase == Phase::ApproachBox)
     {
-        m_phaseAdvanceRequested = false;
+        if (goToNextPhase)
+        {
+            m_phaseAdvanceRequested = false;
 
-        mc_rtc::log::info("Now in grasping phase");
-        m_phase = Phase::GraspBox;
+            mc_rtc::log::info("Now in grasping phase");
+            m_phase       = Phase::GraspBox;
+            goToNextPhase = false;
+        }
 
-        return false;
+        m_leftGripperTask->targetSurface(
+                ctl.robot(m_objectName).robotIndex(),
+                m_objectSurfaceLeftGripper,
+                {m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
+
+        m_rightGripperTask->targetSurface(
+                ctl.robot(m_objectName).robotIndex(),
+                m_objectSurfaceRightGripper,
+                {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
+
+        if (!m_comZChanged)
+        {
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
+            m_comZChanged = true;
+        }
     }
 
-    if (m_phase == Phase::GraspBox && completed)
+    if (m_phase == Phase::GraspBox)
     {
-        m_phaseAdvanceRequested = false;
+        if (goToNextPhase)
+        {
+            m_phaseAdvanceRequested = false;
 
-        mc_rtc::log::info("Now in lift phase");
-        m_phase = Phase::RaiseBox;
+            mc_rtc::log::info("Now in lift phase");
+            m_phase       = Phase::RaiseBox;
+            goToNextPhase = false;
 
-        m_comZChanged = false;
+            m_comZChanged = false;
 
-        ctl.addContact(m_leftContact);
-        ctl.addContact(m_rightContact);
-        m_contactAdded = true;
+            ctl.addContact(m_leftContact);
+            ctl.addContact(m_rightContact);
+            m_contactAdded = true;
+        }
 
-        return false;
+        m_leftGripperTask->targetSurface(
+                ctl.robot(m_objectName).robotIndex(),
+                m_objectSurfaceLeftGripper,
+                {m_leftOrientationBox, m_leftGraspOffsetBox});
+
+        m_rightGripperTask->targetSurface(
+                ctl.robot(m_objectName).robotIndex(),
+                m_objectSurfaceRightGripper,
+                {m_rightOrientationBox, m_rightGraspOffsetBox});
     }
 
-    if (m_phase == Phase::RaiseBox && completed)
+    if (m_phase == Phase::RaiseBox)
     {
-        m_phaseAdvanceRequested = false;
+        if (goToNextPhase)
+        {
+            m_phaseAdvanceRequested = false;
 
-        output("OK");
-        return true;
+            output("OK");
+            return true;
+        }
+
+        m_leftGripperTask->target(
+                ctl.robot().frame(m_robotReferenceFrame),
+                {m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot});
+
+        m_rightGripperTask->target(
+                ctl.robot().frame(m_robotReferenceFrame),
+                {m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot});
+
+        if (!m_comZChanged)
+        {
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t(), m_crouchOffset * 20.0);
+            m_comZChanged = true;
+        }
     }
 
     return false;
@@ -177,82 +233,6 @@ void PickupBox::teardown(mc_control::fsm::Controller &ctl_)
     }
 
     removeFromGui(ctl_);
-}
-
-void PickupBox::applyParameters(mc_control::fsm::Controller &ctl_)
-{
-    auto &ctl = static_cast<DemoController &>(ctl_);
-
-    applyOffsets();
-
-    if (m_leftGripperTask)
-    {
-        m_leftGripperTask->stiffness(m_stiffness);
-        m_leftGripperTask->weight(m_weight);
-    }
-    if (m_rightGripperTask)
-    {
-        m_rightGripperTask->stiffness(m_stiffness);
-        m_rightGripperTask->weight(m_weight);
-    }
-
-    if (m_phase == Phase::ApproachBox)
-    {
-        m_leftGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceLeftGripper,
-                {m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
-
-        m_rightGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceRightGripper,
-                {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
-
-        if (!m_comZChanged)
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1e-1, m_crouchOffset * 20.0);
-            m_comZChanged = true;
-        }
-    }
-    else if (m_phase == Phase::GraspBox)
-    {
-        m_leftGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceLeftGripper,
-                {m_leftOrientationBox, m_leftGraspOffsetBox});
-
-        m_rightGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceRightGripper,
-                {m_rightOrientationBox, m_rightGraspOffsetBox});
-    }
-    else if (m_phase == Phase::RaiseBox)
-    {
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot});
-
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot});
-
-        if (!m_comZChanged)
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1e-1, m_crouchOffset * 20.0);
-            m_comZChanged = true;
-        }
-    }
-}
-
-void PickupBox::applyOffsets()
-{
-    m_leftGraspOffsetRobot  = {0.0, m_leftGripperContactOffset, 0.0};
-    m_leftGraspOffsetBox    = {0.0, 0.0, m_leftGripperContactOffset};
-    m_rightGraspOffsetRobot = {0.0, -m_rightGripperContactOffset, 0.0};
-    m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
-
-    m_leftApproachOffsetBox  = {0.0, 0.0, m_approachOffset};
-    m_rightApproachOffsetBox = {0.0, 0.0, m_approachOffset};
 }
 
 void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
@@ -282,7 +262,8 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
                         data += std::to_string(m_rightGripperTask->speed().norm());
                         data += "m/s";
                         return data;
-                    }));
+                    }),
+            mc_rtc::gui::Label("Current CoM Z: ", [&ctl] { return std::to_string(ctl.robot().com().z()); }));
 
     ctl.gui()->addElement(
             {"GMB", "Pickup"},
@@ -340,7 +321,21 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::NumberInput(
                     "Stiffness", [this] { return m_stiffness; }, [this](double value) { m_stiffness = value; }),
             mc_rtc::gui::NumberInput(
-                    "Weight", [this] { return m_weight; }, [this](double value) { m_weight = value; }));
+                    "Weight", [this] { return m_weight; }, [this](double value) { m_weight = value; }),
+            mc_rtc::gui::ArrayInput(
+                    "Left carry position robot",
+                    [this] { return m_leftCarryPositionRobot; },
+                    [this](const std::vector<double> &values)
+                    {
+                        if (values.size() == 3) m_leftCarryPositionRobot = Eigen::Vector3d(values.data());
+                    }),
+            mc_rtc::gui::ArrayInput(
+                    "Right carry position robot",
+                    [this] { return m_rightCarryPositionRobot; },
+                    [this](const std::vector<double> &values)
+                    {
+                        if (values.size() == 3) m_rightCarryPositionRobot = Eigen::Vector3d(values.data());
+                    }));
 
     ctl.gui()->addElement(
             {"GMB", "Pickup"},
@@ -363,8 +358,6 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::ArrayLabel("Right approach offset box", [this] { return m_rightApproachOffsetBox; }),
             mc_rtc::gui::ArrayLabel("Left grasp offset robot", [this] { return m_leftGraspOffsetRobot; }),
             mc_rtc::gui::ArrayLabel("Right grasp offset robot", [this] { return m_rightGraspOffsetRobot; }),
-            mc_rtc::gui::ArrayLabel("Left carry position robot", [this] { return m_leftCarryPositionRobot; }),
-            mc_rtc::gui::ArrayLabel("Right carry position robot", [this] { return m_rightCarryPositionRobot; }),
             mc_rtc::gui::ArrayLabel("Left orientation box", [this] { return m_leftOrientationBox; }),
             mc_rtc::gui::ArrayLabel("Right orientation box", [this] { return m_rightOrientationBox; }),
             mc_rtc::gui::ArrayLabel("Left orientation robot", [this] { return m_leftOrientationRobot; }),
@@ -374,41 +367,7 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
 void PickupBox::removeFromGui(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
-
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Next Phase");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left gripper contact offset");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right gripper contact offset");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Approach offset");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Crouch offset");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Stiffness");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Weight");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Robot reference frame: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Object name: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Object left surface: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Object right surface: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Gripper left surface: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Gripper right surface: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Current Phase: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Completion eval: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Completion speed: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Contact added: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Remove contact at teardown: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Manual phase change: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left grasp offset box");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right grasp offset box");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left approach offset box");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right approach offset box");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left orientation box");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right orientation box");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left grasp offset robot");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right grasp offset robot");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left carry position robot");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right carry position robot");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left orientation robot");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right orientation robot");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Left gripper task eval norm: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Right gripper task eval norm: ");
-    ctl.gui()->removeElement({"GMB", "Pickup"}, "Force Add Contacts");
+    ctl.gui()->removeCategory({"GMB", "Pickup"});
 }
 
 EXPORT_SINGLE_STATE("PickupBox", PickupBox)
