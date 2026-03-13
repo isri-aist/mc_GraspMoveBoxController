@@ -14,4 +14,5 @@ bool DemoController::run()
 void DemoController::reset(const mc_control::ControllerResetData &reset_data)
 {
     BWC::BaselineWalkingController::reset(reset_data);
+    gui()->addElement({"GMB"}, mc_rtc::gui::Label("Grasp Move Box Controller", [] { return ""; }));
 }

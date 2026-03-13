@@ -90,30 +90,7 @@ void DropoffBox::start(mc_control::fsm::Controller &ctl_)
     m_rightDropPositionRobot.y() = -m_boxHalfWidth;
     m_refComZ                    = ctl.comTask_->com().z();
 
-    ctl.gui()->addElement({"GraspMoveBox"}, mc_rtc::gui::Button("Next Phase", [this] { m_allowPhaseChange = true; }));
-
-    ctl.gui()->addElement(
-            {"GraspMoveBox"},
-            mc_rtc::gui::Label(
-                    "Left gripper distance to box and speed",
-                    [this]
-                    {
-                        std::string data = std::to_string(m_leftGripperTask->eval().norm());
-                        data += "\t";
-                        data += std::to_string(m_leftGripperTask->speed().norm());
-                        return data;
-                    }));
-    ctl.gui()->addElement(
-            {"GraspMoveBox"},
-            mc_rtc::gui::Label(
-                    "Right gripper distance to box and speed",
-                    [this]
-                    {
-                        std::string data = std::to_string(m_rightGripperTask->eval().norm());
-                        data += "\t";
-                        data += std::to_string(m_rightGripperTask->speed().norm());
-                        return data;
-                    }));
+    addToGui(ctl_);
 }
 
 bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
@@ -214,9 +191,48 @@ void DropoffBox::teardown(mc_control::fsm::Controller &ctl_)
         m_contactAdded = false;
     }
 
-    ctl.gui()->removeElement({"GraspMoveBox"}, "Next Phase");
-    ctl.gui()->removeElement({"GraspMoveBox"}, "Left gripper distance to box and speed");
-    ctl.gui()->removeElement({"GraspMoveBox"}, "Right gripper distance to box and speed");
+    removeFromGui(ctl_);
+}
+
+void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
+{
+    auto &ctl = static_cast<DemoController &>(ctl_);
+
+    ctl.gui()->addElement({"GMB", "Dropoff"}, mc_rtc::gui::Button("Next Phase", [this] { m_allowPhaseChange = true; }));
+
+    ctl.gui()->addElement(
+            {"GMB", "Dropoff"},
+            mc_rtc::gui::Label(
+                    "Left gripper task eval norm",
+                    [this]
+                    {
+                        std::string data = std::to_string(m_leftGripperTask->eval().norm());
+                        data += "m\t";
+                        data += std::to_string(m_leftGripperTask->speed().norm());
+                        data += "m/s";
+                        return data;
+                    }));
+    ctl.gui()->addElement(
+            {"GMB", "Dropoff"},
+            mc_rtc::gui::Label(
+                    "Right gripper task eval norm",
+                    [this]
+                    {
+                        std::string data = std::to_string(m_rightGripperTask->eval().norm());
+                        data += "m\t";
+                        data += std::to_string(m_rightGripperTask->speed().norm());
+                        data += "m/s";
+                        return data;
+                    }));
+}
+
+void DropoffBox::removeFromGui(mc_control::fsm::Controller &ctl_)
+{
+    auto &ctl = static_cast<DemoController &>(ctl_);
+
+    ctl.gui()->removeElement({"GMB", "Dropoff"}, "Next Phase");
+    ctl.gui()->removeElement({"GMB", "Dropoff"}, "Left gripper task eval norm");
+    ctl.gui()->removeElement({"GMB", "Dropoff"}, "Right gripper task eval norm");
 }
 
 EXPORT_SINGLE_STATE("DropoffBox", DropoffBox)
