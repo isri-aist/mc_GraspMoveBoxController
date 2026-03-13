@@ -13,6 +13,7 @@ The main configuration is `etc/DemoController.in.yaml`.
 ## TODO
 
 - Tune footstep manager (double support ratio, etc)
+- Figure out the shoulder orientation task issues
 
 ## What is in this package
 

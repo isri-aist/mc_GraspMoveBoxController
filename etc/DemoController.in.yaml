@@ -265,6 +265,13 @@ states:
     weight: 5000
     stiffness: 5
 
+  RaiseHandsBack:
+    base: MoveHands
+    leftHandTargetPositionRobot: [ -0.2, 0.3, -0. ]
+    rightHandTargetPositionRobot: [ -0.2, -0.3, -0. ]
+    weight: 5000
+    stiffness: 5
+
   ShoulderPose:
     base: ShoulderOrientation
     leftShoulderAngle: 0.3
@@ -400,7 +407,7 @@ states:
     stiffness: 2
     weight: 1000
     timeout: 3.0
-    completionEval: 0.1
+    completionEval: 0.05
     completionSpeed: 1.0e-4
     approachOffset: 0.1
     leftGripperContactOffset: 0.1
@@ -572,9 +579,19 @@ states:
       - [ PickupBox1WithShoulders, OK, GoToDrop1WithBox1, Auto ]
       - [ GoToDrop1WithBox1, OK, DropoffBox1WithShoulders, Auto ]
 
+  PickupAndDropLoop:
+    base: Meta
+    Managed: false
+    StepByStep: true
+    ResetPostures: false
+    transitions:
+      - [ RaiseHandsBack, OK, PickupBox0WithShoulders, Auto ]
+      - [PickupBox0WithShoulders, OK, DropoffBox0WithShoulders, Auto ]
+      - [DropoffBox0WithShoulders, OK, PickupBox0WithShoulders, Auto ]
+
   Main:
     base: Parallel
-    states: [ Walk, Run ]
+    states: [ Walk, PickupAndDropLoop ]
 
 transitions:
   - [ Initial, OK, Main, Auto ]
@@ -611,6 +628,8 @@ robots:
     module: env/ground
 
   rhps1:
+    init_pos: # in front of box0
+      translation: [ 1.25, 0.3, 0.84 ]
     PostureTask:
       jointWeights:
         CHEST_P: 50
