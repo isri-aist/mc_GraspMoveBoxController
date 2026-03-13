@@ -19,7 +19,8 @@ struct DropoffBox : mc_control::fsm::State
         {
             None,
             LowerBox,
-            DropBox
+            DropBox,
+            Retreat
         };
 
         std::shared_ptr<mc_tasks::TransformTask>   m_leftGripperTask;
@@ -49,6 +50,7 @@ struct DropoffBox : mc_control::fsm::State
         bool m_removeContactAtTeardown = true;
         bool m_manualPhaseChange       = true;
         bool m_phaseAdvanceRequested   = false;
+        bool m_comZChanged             = true;
 
         Eigen::Vector3d m_leftGraspOffsetBox;
         Eigen::Vector3d m_rightGraspOffsetBox;
@@ -70,4 +72,6 @@ struct DropoffBox : mc_control::fsm::State
 
         void addToGui(mc_control::fsm::Controller &);
         void removeFromGui(mc_control::fsm::Controller &);
+        void applyOffsets();
+        void applyParameters(mc_control::fsm::Controller &);
 };
