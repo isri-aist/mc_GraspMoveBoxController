@@ -52,7 +52,7 @@ struct PickupBox : mc_control::fsm::State
         bool m_contactAdded            = false;
         bool m_removeContactAtTeardown = false;
         bool m_manualPhaseChange       = true;
-        bool m_allowPhaseChange        = true;
+        bool m_phaseAdvanceRequested   = false;
 
         mc_control::Contact m_leftContact{};
         mc_control::Contact m_rightContact{};

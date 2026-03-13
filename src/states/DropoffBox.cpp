@@ -45,7 +45,7 @@ void DropoffBox::configure(const mc_rtc::Configuration &config)
     m_leftApproachOffsetBox  = {0.0, 0.0, m_approachOffset};
     m_rightApproachOffsetBox = {0.0, 0.0, m_approachOffset};
 
-    m_allowPhaseChange = !m_manualPhaseChange;
+    m_phaseAdvanceRequested = false;
 }
 
 void DropoffBox::start(mc_control::fsm::Controller &ctl_)
@@ -111,8 +111,8 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::None)
     {
-        if (!m_allowPhaseChange) return false;
-        if (m_manualPhaseChange) m_allowPhaseChange = false;
+        if (m_manualPhaseChange && !m_phaseAdvanceRequested) return false;
+        m_phaseAdvanceRequested = false;
 
         mc_rtc::log::info("Now in lower box phase");
         m_phase = Phase::LowerBox;
@@ -130,16 +130,15 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
         ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
     }
 
-    const bool completed = (m_allowPhaseChange && m_manualPhaseChange) ||
-            (m_leftGripperTask->eval().norm() < m_completionEval &&
-             m_leftGripperTask->speed().norm() < m_completionSpeed &&
-             m_rightGripperTask->eval().norm() < m_completionEval &&
-             m_rightGripperTask->speed().norm() < m_completionSpeed);
+    const bool completionReached = m_leftGripperTask->eval().norm() < m_completionEval &&
+            m_leftGripperTask->speed().norm() < m_completionSpeed &&
+            m_rightGripperTask->eval().norm() < m_completionEval &&
+            m_rightGripperTask->speed().norm() < m_completionSpeed;
+    const bool completed = m_phaseAdvanceRequested || (!m_manualPhaseChange && completionReached);
 
     if (m_phase == Phase::LowerBox && completed)
     {
-        if (!m_allowPhaseChange) return false;
-        if (m_manualPhaseChange) m_allowPhaseChange = false;
+        m_phaseAdvanceRequested = false;
 
         mc_rtc::log::info("Now in drop box phase");
         m_phase = Phase::DropBox;
@@ -163,12 +162,13 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
                 m_objectSurfaceRightGripper,
                 {rightOffsetRotation * m_rightOrientationBox,
                  (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
+
+        return false;
     }
 
     if (m_phase == Phase::DropBox && completed)
     {
-        if (!m_allowPhaseChange) return false;
-        if (m_manualPhaseChange) m_allowPhaseChange = false;
+        m_phaseAdvanceRequested = false;
 
         ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), m_crouchOffset * 20.0);
         output("OK");
@@ -198,7 +198,9 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    ctl.gui()->addElement({"GMB", "Dropoff"}, mc_rtc::gui::Button("Next Phase", [this] { m_allowPhaseChange = true; }));
+    ctl.gui()->addElement(
+            {"GMB", "Dropoff"},
+            mc_rtc::gui::Button("Next Phase", [this] { m_phaseAdvanceRequested = true; }));
 
     ctl.gui()->addElement(
             {"GMB", "Dropoff"},
