@@ -188,6 +188,12 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
                 {m_rightOrientationBox, m_rightGraspOffsetBox});
+
+        if (!m_comZChanged)
+        {
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
+            m_comZChanged = true;
+        }
     }
 
     if (m_phase == Phase::RaiseBox)

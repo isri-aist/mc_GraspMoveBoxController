@@ -73,5 +73,5 @@ struct PickupBox : mc_control::fsm::State
         Eigen::Quaterniond m_rightOrientationRobot;
 
         void addToGui(mc_control::fsm::Controller &);
-        void removeFromGui(mc_control::fsm::Controller &);
+        static void removeFromGui(mc_control::fsm::Controller &);
 };
