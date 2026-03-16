@@ -12,5 +12,9 @@ struct DemoController_DLLAPI DemoController : public BWC::BaselineWalkingControl
 
         void reset(const mc_control::ControllerResetData &reset_data) override;
 
+        void setRobotPoseFromGui(const sva::PTransformd &tf);
+
+        void reinitializeAfterTeleport();
+
         double m_refCoMZ = 0.94;
 };
