@@ -14,8 +14,9 @@ struct HoldBox : mc_control::fsm::State
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_leftGripperTask;
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_rightGripperTask;
 
-        double m_stiffness = 2.0;
-        double m_weight    = 2000.0;
+        double m_stiffness    = 2.0;
+        double m_weight       = 2000.0;
+        double m_boxHalfWidth = 0.0;
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_objectName;
@@ -27,4 +28,8 @@ struct HoldBox : mc_control::fsm::State
 
         Eigen::Quaterniond m_leftOrientationRobot;
         Eigen::Quaterniond m_rightOrientationRobot;
+
+        void addToGui(mc_control::fsm::Controller &);
+        void removeFromGui(mc_control::fsm::Controller &);
+        void rebuildTasks(mc_control::fsm::Controller &);
 };
