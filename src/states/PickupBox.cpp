@@ -126,23 +126,26 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::None && (!m_manualPhaseChange || m_phaseAdvanceRequested))
     {
+        mc_rtc::log::info("Now in approach phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
+
         m_phaseAdvanceRequested = false;
+        goToNextPhase           = false;
 
-        mc_rtc::log::info("Now in approach phase");
         m_phase = Phase::ApproachBox;
-
-        m_comZChanged = false;
+        updateCoMZ(ctl_);
     }
 
     if (m_phase == Phase::ApproachBox)
     {
         if (goToNextPhase)
         {
-            m_phaseAdvanceRequested = false;
+            mc_rtc::log::info("Now in grasping phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
 
-            mc_rtc::log::info("Now in grasping phase");
-            m_phase       = Phase::GraspBox;
-            goToNextPhase = false;
+            m_phaseAdvanceRequested = false;
+            goToNextPhase           = false;
+
+            m_phase = Phase::GraspBox;
+            updateCoMZ(ctl_);
         }
 
         m_leftGripperTask->targetSurface(
@@ -154,29 +157,23 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
                 {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
-
-        if (!m_comZChanged)
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
-            m_comZChanged = true;
-        }
     }
 
     if (m_phase == Phase::GraspBox)
     {
         if (goToNextPhase)
         {
+            mc_rtc::log::info("Now in lift phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
+
             m_phaseAdvanceRequested = false;
-
-            mc_rtc::log::info("Now in lift phase");
-            m_phase       = Phase::RaiseBox;
-            goToNextPhase = false;
-
-            m_comZChanged = false;
+            goToNextPhase           = false;
 
             ctl.addContact(m_leftContact);
             ctl.addContact(m_rightContact);
             m_contactAdded = true;
+
+            m_phase = Phase::RaiseBox;
+            updateCoMZ(ctl_);
         }
 
         m_leftGripperTask->targetSurface(
@@ -188,19 +185,13 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
                 {m_rightOrientationBox, m_rightGraspOffsetBox});
-
-        if (!m_comZChanged)
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
-            m_comZChanged = true;
-        }
     }
 
     if (m_phase == Phase::RaiseBox)
     {
         if (goToNextPhase)
         {
-            m_phaseAdvanceRequested = false;
+            mc_rtc::log::info("End of raise phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
 
             output("OK");
             return true;
@@ -213,12 +204,6 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         m_rightGripperTask->target(
                 ctl.robot().frame(m_robotReferenceFrame),
                 {m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot});
-
-        if (!m_comZChanged)
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t(), m_crouchOffset * 20.0);
-            m_comZChanged = true;
-        }
     }
 
     return false;
@@ -319,10 +304,10 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::NumberInput(
                     "Crouch offset",
                     [this] { return m_crouchOffset; },
-                    [this](double value)
+                    [this, &ctl_](double value)
                     {
                         m_crouchOffset = value;
-                        m_comZChanged  = false;
+                        updateCoMZ(ctl_);
                     }),
             mc_rtc::gui::NumberInput(
                     "Stiffness", [this] { return m_stiffness; }, [this](double value) { m_stiffness = value; }),
@@ -374,6 +359,31 @@ void PickupBox::removeFromGui(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
     ctl.gui()->removeCategory({"GMB", "Pickup"});
+}
+
+void PickupBox::updateCoMZ(mc_control::fsm::Controller &ctl_)
+{
+    auto &ctl = static_cast<DemoController &>(ctl_);
+
+    switch (m_phase)
+    {
+        case Phase::None:
+        case Phase::RaiseBox:
+        {
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t(), m_crouchOffset * 20.0);
+            return;
+        }
+        case Phase::ApproachBox:
+        case Phase::GraspBox:
+        {
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
+            return;
+        }
+        default:
+        {
+            return;
+        }
+    }
 }
 
 EXPORT_SINGLE_STATE("PickupBox", PickupBox)

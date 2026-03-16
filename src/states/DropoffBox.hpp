@@ -22,8 +22,8 @@ struct DropoffBox : mc_control::fsm::State
             Retreat
         };
 
-        std::shared_ptr<mc_tasks::TransformTask>   m_leftGripperTask;
-        std::shared_ptr<mc_tasks::TransformTask>   m_rightGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask> m_rightGripperTask;
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_objectName;
@@ -48,7 +48,6 @@ struct DropoffBox : mc_control::fsm::State
         bool m_removeContactAtTeardown = true;
         bool m_manualPhaseChange       = true;
         bool m_phaseAdvanceRequested   = false;
-        bool m_comZChanged             = true;
 
         Eigen::Vector3d m_leftGraspOffsetBox;
         Eigen::Vector3d m_rightGraspOffsetBox;
@@ -65,9 +64,13 @@ struct DropoffBox : mc_control::fsm::State
         Eigen::Vector3d m_leftDropPositionRobot;
         Eigen::Vector3d m_rightDropPositionRobot;
 
+        Eigen::Vector3d m_leftApproachOffsetRobot;
+        Eigen::Vector3d m_rightApproachOffsetRobot;
+
         Eigen::Quaterniond m_leftOrientationRobot;
         Eigen::Quaterniond m_rightOrientationRobot;
 
         void addToGui(mc_control::fsm::Controller &);
         void removeFromGui(mc_control::fsm::Controller &);
+        void updateCoMZ(mc_control::fsm::Controller &);
 };

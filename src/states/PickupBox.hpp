@@ -49,7 +49,6 @@ struct PickupBox : mc_control::fsm::State
         bool m_removeContactAtTeardown = false;
         bool m_manualPhaseChange       = true;
         bool m_phaseAdvanceRequested   = false;
-        bool m_comZChanged             = true;
 
         mc_control::Contact m_leftContact{};
         mc_control::Contact m_rightContact{};
@@ -73,5 +72,6 @@ struct PickupBox : mc_control::fsm::State
         Eigen::Quaterniond m_rightOrientationRobot;
 
         void addToGui(mc_control::fsm::Controller &);
-        static void removeFromGui(mc_control::fsm::Controller &);
+        void removeFromGui(mc_control::fsm::Controller &);
+        void updateCoMZ(mc_control::fsm::Controller &);
 };
