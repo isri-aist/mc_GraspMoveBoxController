@@ -28,10 +28,10 @@ constraints:
 collisions:
   - type: collision
     useMinimal: true
-#  - type: collision
-#    r1: rhps1
-#    r2: desk
-#    useMinimal: true
+  - type: collision
+    r1: rhps1
+    r2: desk
+    useMinimal: true
 #    collisions:
 #    - body1: L_WRIST_Y_LINK
 #      body2: table
@@ -274,10 +274,10 @@ states:
 
   ShoulderPose:
     base: ShoulderOrientation
-    leftShoulderAngle: 0.3
-    rightShoulderAngle: -0.6
-    weight: 2000
-    stiffness: 5
+    leftShoulderAngle: 0.5
+    rightShoulderAngle: -0.5
+    weight: 500
+    stiffness: 2
 
   GoToConfigured:
     base: GoTo
@@ -336,14 +336,14 @@ states:
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
     stiffness: 10
-    weight: 10000
+    weight: 7000
     timeout: 3.0
     completionEval: 0.05
-    completionSpeed: 2.0e-3
+    completionSpeed: 2.0e-4
     approachOffset: 0.1
-    crouchOffset: 0.05
-    leftGripperContactOffset: 0.1
-    rightGripperContactOffset: 0.06
+    crouchOffset: 0.06
+    leftGripperContactOffset: 0.06
+    rightGripperContactOffset: 0.1
     leftRaisePositionRobot: [ 0.15, 0.3, -0.2 ]
     rightRaisePositionRobot: [ 0.15, -0.3, -0.2 ]
     leftCarryPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
@@ -368,10 +368,6 @@ states:
     rightPositionRobot: [ 0.3, 0.0, -0. ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
-
-  HoldBox0WithShoulders:
-    base: Parallel
-    states: [ ShoulderPose, HoldBox0 ]
 
   GoToDrop00: # start at [ 1.25, 0.3, 0.0 ]
     base: GoToConfigured
@@ -404,18 +400,16 @@ states:
     objectName: zbox0
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
-    stiffness: 2
-    weight: 1000
+    stiffness: 5
+    weight: 7000
     timeout: 3.0
     completionEval: 0.05
-    completionSpeed: 1.0e-4
+    completionSpeed: 2.0e-4
     approachOffset: 0.1
-    leftGripperContactOffset: 0.1
-    rightGripperContactOffset: 0.06
-    leftRaisePositionRobot: [ 0., 0.3, -0.1 ]
-    rightRaisePositionRobot: [ 0., -0.3, -0.1 ]
-    leftDropPositionRobot: [ 0.3, 0.0, -0.2 ] # y value is automatically set with box width
-    rightDropPositionRobot: [ 0.3, 0.0, -0.2 ]
+    leftGripperContactOffset: 0.06
+    rightGripperContactOffset: 0.1
+    leftDropPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
+    rightDropPositionRobot: [ 0.3, 0.0, -0.1 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
