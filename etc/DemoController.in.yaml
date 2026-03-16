@@ -275,8 +275,8 @@ states:
   ShoulderPose:
     base: ShoulderOrientation
     leftShoulderAngle: 0.3
-    rightShoulderAngle: -0.3
-    weight: 1000
+    rightShoulderAngle: -0.6
+    weight: 2000
     stiffness: 5
 
   GoToConfigured:
