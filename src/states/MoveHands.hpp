@@ -30,4 +30,8 @@ struct MoveHands : mc_control::fsm::State
 
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_leftGripperTask;
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_rightGripperTask;
+
+        void addToGui(mc_control::fsm::Controller &ctl_);
+        void removeFromGui(mc_control::fsm::Controller &ctl_);
+        void rebuildTasks(mc_control::fsm::Controller &ctl_);
 };
