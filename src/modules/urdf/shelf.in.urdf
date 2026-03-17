@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot
+  name="shelf">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="7.96154588280138E-16 -8.38264796894959E-16 0.792585718625367"
+        rpy="0 0 0" />
+      <mass
+        value="57.1474400000003" />
+      <inertia
+        ixx="16.2091648964521"
+        ixy="-5.79407293482356E-16"
+        ixz="-1.25104593726999E-14"
+        iyy="19.3385980844521"
+        iyz="1.91916951852977E-14"
+        izz="5.12054130037336" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://@MODULE_INSTALL_LOCATION@/meshes/shelf/shelf.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://@MODULE_INSTALL_LOCATION@/meshes/shelf/shelf.stl" />
+      </geometry>
+    </collision>
+  </link>
+</robot>

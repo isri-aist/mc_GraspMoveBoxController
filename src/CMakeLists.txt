@@ -20,3 +20,4 @@ target_link_libraries(${PROJECT_NAME}_controller PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PUBLIC baseline_walking_controller::BaselineWalkingController)
 
 add_subdirectory(states)
+add_subdirectory(modules)

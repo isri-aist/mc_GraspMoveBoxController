@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot
+  name="box_no_lid">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-1.39351125502578E-07 1.72531907588799E-08 0.0697260077867169"
+        rpy="0 0 0" />
+      <mass
+        value="2.30018639174755" />
+      <inertia
+        ixx="0.0338068086073017"
+        ixy="-2.33105584915719E-09"
+        ixz="1.19160535928554E-08"
+        iyy="0.0629963000717267"
+        iyz="-1.47517551360625E-09"
+        izz="0.0874855073970769" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://@MODULE_INSTALL_LOCATION@/meshes/box_no_lid/box_no_lid.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 0 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://@MODULE_INSTALL_LOCATION@/meshes/box_no_lid/box_no_lid.stl" />
+      </geometry>
+    </collision>
+  </link>
+</robot>

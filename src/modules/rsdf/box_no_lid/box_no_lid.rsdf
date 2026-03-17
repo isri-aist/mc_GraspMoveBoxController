@@ -1,0 +1,63 @@
+<?xml version="1.0" ?>
+<robot name="box_no_lid">
+  <planar_surface name="Bottom" link="base_link">
+    <origin xyz="0.000000 0.000000 0.000000"
+            rpy="0.000000 0.000000 0.000000" />
+    <points>
+      <point xy="-0.190000 0.124500" />
+      <point xy="0.190000 0.124500" />
+      <point xy="0.190000 -0.124500" />
+      <point xy="-0.190000 -0.124500" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Right" link="base_link">
+    <origin xyz="0.191121 0.000000 0.052713"
+            rpy="1.544395 -0.633450 -1.555166" />
+    <points>
+      <point xy="-0.079347 0.000937" />
+      <point xy="-0.022062 0.073565" />
+      <point xy="0.076797 0.000937" />
+      <point xy="0.024613 -0.075439" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Left" link="base_link">
+    <origin xyz="-0.191121 0.000000 0.052713"
+              rpy="1.544395 -0.633450 1.586427" />
+    <points>
+      <point xy="-0.079347 0.000937" />
+      <point xy="-0.022062 0.073565" />
+      <point xy="0.076797 0.000937" />
+      <point xy="0.024613 -0.075439" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Front" link="base_link">
+    <origin xyz="0.000000 -0.125684 0.047706"
+            rpy="-0.909988 -1.530347 -0.660412" />
+    <points>
+      <point xy="-0.044471 -0.101131" />
+      <point xy="0.038008 -0.101131" />
+      <point xy="0.044386 0.098499" />
+      <point xy="-0.037924 0.103764" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Back" link="base_link">
+    <origin xyz="0.000000 0.125684 0.047706"
+            rpy="-0.909988 -1.530347 2.481181" />
+    <points>
+      <point xy="-0.044471 -0.101131" />
+      <point xy="0.038008 -0.101131" />
+      <point xy="0.044386 0.098499" />
+      <point xy="-0.037924 0.103764" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+</robot>

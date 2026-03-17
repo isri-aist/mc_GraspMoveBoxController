@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<robot name="box_lid">
+  <planar_surface name="Bottom" link="base_link">
+    <origin rpy="-0.0 0.0 -0.0" xyz="0.0 0.0 0.0" />
+    <points>
+      <point xy="-0.190000 -0.124500" />
+        <point xy="0.190000 -0.124500" />
+        <point xy="0.190000 0.124500" />
+        <point xy="-0.190000 0.124500" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Top" link="base_link">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.0 0.149000" />
+    <points>
+      <point xy="-0.205000 -0.115999" />
+        <point xy="0.205000 -0.115999" />
+        <point xy="0.205000 0.115999" />
+        <point xy="-0.205000 0.115999" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Right" link="base_link">
+    <origin rpy="1.5495 0.0 -1.5708" xyz="0.1911215 0.0 0.052713" />
+    <points>
+      <point xy="-0.0645 -0.046213" />
+        <point xy="-0.0645  0.046213" />
+        <point xy=" 0.0645  0.046213" />
+        <point xy=" 0.0645 -0.046213" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Left" link="base_link">
+    <origin xyz="-0.191121 0.000000 0.052713"
+            rpy="1.544395 -0.633450 1.586427" />
+    <points>
+      <point xy="-0.079347 0.000937" />
+      <point xy="-0.022062 0.073565" />
+      <point xy="0.076797 0.000937" />
+      <point xy="0.024613 -0.075439" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Front" link="base_link">
+    <origin xyz="0.0 -0.125684 0.047706"
+      rpy="-1.5468 0 0" />
+    <points>
+      <point xy="-0.1025 -0.0412" />
+      <point xy="-0.1025  0.0412" />
+      <point xy=" 0.1025  0.0412" />
+      <point xy=" 0.1025 -0.0412" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+  <planar_surface name="Back" link="base_link">
+    <origin xyz="0.0 0.125684 0.047706"
+            rpy="1.5468 0 0" />
+    <points>
+      <point xy="-0.1025 -0.0412" />
+      <point xy="-0.1025  0.0412" />
+      <point xy=" 0.1025  0.0412" />
+      <point xy=" 0.1025 -0.0412" />
+    </points>
+    <material name="plastic" />
+  </planar_surface>
+
+</robot>

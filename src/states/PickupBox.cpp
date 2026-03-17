@@ -99,9 +99,9 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
-    m_leftGraspOffsetRobot  = {0.0, m_leftGripperContactOffset, 0.0};
+    m_leftGraspOffsetRobot  = {0.0, std::abs(m_leftGripperContactOffset), 0.0};
     m_leftGraspOffsetBox    = {0.0, 0.0, m_leftGripperContactOffset};
-    m_rightGraspOffsetRobot = {0.0, -m_rightGripperContactOffset, 0.0};
+    m_rightGraspOffsetRobot = {0.0, -std::abs(m_rightGripperContactOffset), 0.0};
     m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
 
     m_leftApproachOffsetBox  = {0.0, 0.0, m_approachOffset};

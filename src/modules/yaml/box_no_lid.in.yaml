@@ -1,0 +1,12 @@
+# Location of data files, all path in the YAML file are
+# interpreted relative to this path unless they are absolute paths
+path: "@MODULE_INSTALL_LOCATION@"
+name: box_no_lid
+urdf_path: urdf/box_no_lid.urdf
+rsdf_dir: rsdf/box_no_lid
+fixed: false
+
+# convexHulls are auto-generated
+
+# Default orientation (quaternion) and position of the floating base
+default_attitude: [1., 0., 0., 0., 0., 0., 0.]

@@ -1,0 +1,1 @@
+DemoController::Shelf: [json, "@MODULE_INSTALL_LOCATION@/yaml/shelf.yaml"]

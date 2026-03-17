@@ -333,25 +333,25 @@ states:
   PickupBox0:
     base: PickupBox
     objectName: zbox0
-    objectSurfaceLeftGripper: Right
-    objectSurfaceRightGripper: Left
+    objectSurfaceLeftGripper: Back
+    objectSurfaceRightGripper: Front
     stiffness: 10
     weight: 7000
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-4
-    approachOffset: 0.1
+    approachOffset: -0.1
     crouchOffset: 0.06
-    leftGripperContactOffset: 0.06
-    rightGripperContactOffset: 0.1
+    leftGripperContactOffset: -0.06
+    rightGripperContactOffset: -0.1
     leftRaisePositionRobot: [ 0.15, 0.3, -0.2 ]
     rightRaisePositionRobot: [ 0.15, -0.3, -0.2 ]
     leftCarryPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
     rightCarryPositionRobot: [ 0.3, 0.0, -0. ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
-    leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
-    rightOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
+    leftOrientationBox: [ -0.5, -0.5,  0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
+    rightOrientationBox: [ 0.5, -0.5, -0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
 
   PickupBox0WithShoulders:
     base: Parallel
@@ -398,22 +398,22 @@ states:
   DropoffBox0:
     base: DropoffBox
     objectName: zbox0
-    objectSurfaceLeftGripper: Right
-    objectSurfaceRightGripper: Left
+    objectSurfaceLeftGripper: Back
+    objectSurfaceRightGripper: Front
     stiffness: 5
     weight: 7000
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-4
-    approachOffset: 0.1
-    leftGripperContactOffset: 0.06
-    rightGripperContactOffset: 0.1
+    approachOffset: -0.1
+    leftGripperContactOffset: -0.06
+    rightGripperContactOffset: -0.1
     leftDropPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
     rightDropPositionRobot: [ 0.3, 0.0, -0.1 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
-    leftOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
-    rightOrientationBox: [ 0.70710678, 0., 0.70710678, 0. ]
+    leftOrientationBox: [ -0.5, -0.5,  0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
+    rightOrientationBox: [ 0.5, -0.5, -0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
 
   DropoffBox0WithShoulders:
     base: Parallel
@@ -580,8 +580,8 @@ states:
     ResetPostures: false
     transitions:
       - [ RaiseHandsBack, OK, PickupBox0WithShoulders, Auto ]
-      - [PickupBox0WithShoulders, OK, DropoffBox0WithShoulders, Auto ]
-      - [DropoffBox0WithShoulders, OK, PickupBox0WithShoulders, Auto ]
+      - [ PickupBox0WithShoulders, OK, DropoffBox0WithShoulders, Auto ]
+      - [ DropoffBox0WithShoulders, OK, PickupBox0WithShoulders, Auto ]
 
   Main:
     base: Parallel
@@ -600,21 +600,21 @@ robots:
       translation: [ 2.0, 0.0, 0.0 ]
       rotation: [ 0.0, 0.0, 1.57 ]
   zbox0:
-    module: object/box # object/box_no_lid
+    module: DemoController::BoxNoLid # object/box_no_lid
     init_pos:
       translation: [ 1.6, 0.3, 0.775 ]
       # rotation: [0.0, 1.57, 0.0]
   zbox1:
-    module: object/box # object/box_no_lid
+    module: DemoController::BoxNoLid # object/box_no_lid
     init_pos:
       translation: [ 1.6, -0.3, 0.775 ]
       # rotation: [0.0, 1.57, 0.0]
   shelf0:
-    module: env/table
+    module: DemoController::Shelf
     init_pos:
       translation: [ 0.6, 1.0, 0.0 ]
   shelf1:
-    module: env/table
+    module: DemoController::Shelf
     init_pos:
       translation: [ 0.6, -1.35, 0.0 ]
 

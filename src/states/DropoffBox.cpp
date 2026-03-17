@@ -109,14 +109,14 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
-    m_leftGraspOffsetRobot  = {0.0, m_leftGripperContactOffset, 0.0};
+    m_leftGraspOffsetRobot  = {0.0, std::abs(m_leftGripperContactOffset), 0.0};
     m_leftGraspOffsetBox    = {0.0, 0.0, m_leftGripperContactOffset};
-    m_rightGraspOffsetRobot = {0.0, -m_rightGripperContactOffset, 0.0};
+    m_rightGraspOffsetRobot = {0.0, -std::abs(m_rightGripperContactOffset), 0.0};
     m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
 
-    m_leftApproachOffsetRobot  = {0.0, m_approachOffset, 0.0};
+    m_leftApproachOffsetRobot  = {0.0, std::abs(m_approachOffset), 0.0};
     m_leftApproachOffsetBox    = {0.0, 0.0, m_approachOffset};
-    m_rightApproachOffsetRobot = {0.0, -m_approachOffset, 0.0};
+    m_rightApproachOffsetRobot = {0.0, -std::abs(m_approachOffset), 0.0};
     m_rightApproachOffsetBox   = {0.0, 0.0, m_approachOffset};
 
     if (m_leftGripperTask)
