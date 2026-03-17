@@ -260,17 +260,20 @@ states:
 
   RaiseHands:
     base: MoveHands
-    leftHandTargetPositionRobot: [ 0.1, 0.3, -0. ]
-    rightHandTargetPositionRobot: [ 0.1, -0.3, -0. ]
+    leftHandTargetPositionRobot: [ 0.1, 0.3, 0. ]
+    rightHandTargetPositionRobot: [ 0.1, -0.3, 0. ]
     weight: 5000
     stiffness: 5
 
-  RaiseHandsBack:
-    base: MoveHands
-    leftHandTargetPositionRobot: [ -0.2, 0.3, -0. ]
-    rightHandTargetPositionRobot: [ -0.2, -0.3, -0. ]
-    weight: 5000
-    stiffness: 5
+  RaiseHandsWithShoulders:
+    base: Parallel
+    states: [ RaiseHands,  ShoulderPose ]
+    delays:
+      ShoulderPose: 1.0
+    configs:
+      RaiseHands:
+        leftHandTargetPositionRobot: [ -0.2, 0.3, 0. ]
+        rightHandTargetPositionRobot: [ -0.2, -0.3, 0. ]
 
   ShoulderPose:
     base: ShoulderOrientation
@@ -581,7 +584,7 @@ states:
     StepByStep: true
     ResetPostures: false
     transitions:
-      - [ RaiseHandsBack, OK, PickupBox0WithShoulders, Auto ]
+      - [ RaiseHandsWithShoulders, OK, PickupBox0WithShoulders, Auto ]
       - [ PickupBox0WithShoulders, OK, DropoffBox0WithShoulders, Auto ]
       - [ DropoffBox0WithShoulders, OK, PickupBox0WithShoulders, Auto ]
 
@@ -590,7 +593,7 @@ states:
     states: [ Walk, PickupAndDropLoop ]
 
 transitions:
-  - [ Initial, OK, Main, Auto ]
+  - [ Initial, OK, Main, Strict ]
 
 # Initial state
 init: Initial
