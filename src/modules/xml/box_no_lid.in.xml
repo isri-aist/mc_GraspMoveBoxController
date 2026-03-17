@@ -1,11 +1,11 @@
 <mujoco model="box_no_lid">
     <default>
-	    <default class="collision">
-		    <geom condim="3" group="0" rgba="0.266754 0.174546 0.0644028 1" />
-	    </default>
-	    <default class="visual">
-		    <geom condim="3" group="1" conaffinity="0" contype="0" />
-	    </default>
+        <default class="collision">
+            <geom condim="3" group="0" rgba="0.266754 0.174546 0.0644028 1"/>
+        </default>
+        <default class="visual">
+            <geom condim="3" group="1" conaffinity="0" contype="0"/>
+        </default>
     </default>
 
     <asset>
@@ -14,12 +14,12 @@
 
     <worldbody>
         <body name="base_link">
-            <joint name="root" type="free" />
-<!--             <joint type="free"/>-->
+            <joint name="root" type="free"/>
+            <!--             <joint type="free"/>-->
             <inertial
-                pos="-1.3935e-07 1.7253e-08 0.069726"
-                mass="0.762"
-                fullinertia="0.011200 0.020869 0.028982 -7.7224e-10 3.9475e-09 -4.8870e-10"/>
+                    pos="-1.3935e-07 1.7253e-08 0.069726"
+                    mass="0.762"
+                    fullinertia="0.011200 0.020869 0.028982 -7.7224e-10 3.9475e-09 -4.8870e-10"/>
 
             <geom class="collision" type="mesh"
                   mesh="box_no_lid_mesh"

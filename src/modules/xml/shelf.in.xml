@@ -1,11 +1,11 @@
 <mujoco model="shelf">
     <default>
-	    <default class="collision">
-		    <geom condim="3" group="0" rgba="0.266754 0.174546 0.0644028 1" />
-	    </default>
-	    <default class="visual">
-		    <geom condim="3" group="1" conaffinity="0" contype="0" />
-	    </default>
+        <default class="collision">
+            <geom condim="3" group="0" rgba="0.266754 0.174546 0.0644028 1"/>
+        </default>
+        <default class="visual">
+            <geom condim="3" group="1" conaffinity="0" contype="0"/>
+        </default>
     </default>
 
     <asset>
@@ -15,9 +15,9 @@
     <worldbody>
         <body name="shelf_base" pos="0 0 0">
             <inertial
-                pos="7.9615e-16 -8.3826e-16 0.79258"
-                mass="22.0"
-                fullinertia="6.24004 7.44478 1.97125 -2.2305e-16 -4.8160e-15 7.3883e-15"/>
+                    pos="7.9615e-16 -8.3826e-16 0.79258"
+                    mass="22.0"
+                    fullinertia="6.24004 7.44478 1.97125 -2.2305e-16 -4.8160e-15 7.3883e-15"/>
 
             <geom class="collision" type="mesh"
                   mesh="shelf_mesh"

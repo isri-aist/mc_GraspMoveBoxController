@@ -9,4 +9,4 @@ fixed: false
 # convexHulls are auto-generated
 
 # Default orientation (quaternion) and position of the floating base
-default_attitude: [1., 0., 0., 0., 0., 0., 0.]
+default_attitude: [ 1., 0., 0., 0., 0., 0., 0. ]

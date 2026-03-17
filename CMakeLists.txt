@@ -18,9 +18,9 @@ endif ()
 
 find_package(baseline_walking_controller REQUIRED)
 find_package(baseline_footstep_planner REQUIRED)
-if(INSTALL_MUJOCO_OBJECTS)
+if (INSTALL_MUJOCO_OBJECTS)
     find_package(mc_mujoco REQUIRED)
-endif()
+endif ()
 
 add_subdirectory(src)
 

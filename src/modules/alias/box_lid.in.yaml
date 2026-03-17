@@ -1,1 +1,1 @@
-DemoController::BoxLid: [json, "@MODULE_INSTALL_LOCATION@/yaml/box_lid.yaml"]
+DemoController::BoxLid: [ json, "@MODULE_INSTALL_LOCATION@/yaml/box_lid.yaml" ]
