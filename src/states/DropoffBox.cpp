@@ -116,7 +116,7 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
     m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
 
     m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
-    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Right);
+    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
 
     if (m_leftGripperTask)
     {

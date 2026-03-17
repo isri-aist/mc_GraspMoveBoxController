@@ -114,7 +114,7 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
     m_rightGraspOffsetBox = {0.0, 0.0, m_rightGripperContactOffset};
 
     m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
-    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Right);
+    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
 
     if (m_leftGripperTask)
     {
@@ -323,15 +323,15 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
                     [this] { return m_leftApproachOffsetRobot; },
                     [this](const Eigen::Vector3d &value)
                     {
-                        m_leftCarryPositionRobot = value;
-                        m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
+                        m_leftApproachOffsetRobot = value;
+                        m_leftApproachOffsetBox   = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
                     }),
             mc_rtc::gui::ArrayInput(
                     "Right approach offset robot",
                     [this] { return m_rightApproachOffsetRobot; },
                     [this](const Eigen::Vector3d &value)
                     {
-                        m_rightCarryPositionRobot = value;
+                        m_rightApproachOffsetRobot = value;
                         m_rightApproachOffsetBox =
                                 BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
                     }),

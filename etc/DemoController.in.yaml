@@ -340,8 +340,8 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-4
-    leftApproachOffsetRobot: [0.0, 0.1, -0.015]
-    rightApproachOffsetRobot: [0.0, -0.1, -0.015]
+    leftApproachOffsetRobot: [ 0.0, 0.1, -0.01 ]
+    rightApproachOffsetRobot: [ 0.0, -0.1, -0.01 ]
     crouchOffset: 0.06
     leftGripperContactOffset: -0.06
     rightGripperContactOffset: -0.1
@@ -406,8 +406,8 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-4
-    leftApproachOffsetRobot: [0.0, 0.1, -0.015]
-    rightApproachOffsetRobot: [0.0, -0.1, -0.015]
+    leftApproachOffsetRobot: [ 0.0, 0.1, 0.035 ]
+    rightApproachOffsetRobot: [ 0.0, -0.1, 0.035 ]
     leftGripperContactOffset: -0.06
     rightGripperContactOffset: -0.1
     leftDropPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
