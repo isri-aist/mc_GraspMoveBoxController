@@ -602,12 +602,12 @@ robots:
   zbox0:
     module: DemoController::BoxNoLid # object/box_no_lid
     init_pos:
-      translation: [ 1.6, 0.3, 0.775 ]
+      translation: [ 1.6, 0.3, 0.71 ]
       # rotation: [0.0, 1.57, 0.0]
   zbox1:
     module: DemoController::BoxNoLid # object/box_no_lid
     init_pos:
-      translation: [ 1.6, -0.3, 0.775 ]
+      translation: [ 1.6, -0.3, 0.71 ]
       # rotation: [0.0, 1.57, 0.0]
   shelf0:
     module: DemoController::Shelf
