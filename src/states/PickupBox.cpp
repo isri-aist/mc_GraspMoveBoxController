@@ -17,12 +17,12 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("weight", m_weight);
     config("completionEval", m_completionEval);
     config("completionSpeed", m_completionSpeed);
-    config("crouchOffset", m_crouchOffset);
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
     config("manualPhaseChange", m_manualPhaseChange);
     config("leftGripperContactOffset", m_leftGripperContactOffset);
     config("rightGripperContactOffset", m_rightGripperContactOffset);
-    config("approachOffset", m_approachOffset);
+    config("leftApproachOffsetRobot", m_leftApproachOffsetRobot);
+    config("rightApproachOffsetRobot", m_rightApproachOffsetRobot);
     config("leftCarryPositionRobot", m_leftCarryPositionRobot);
     config("rightCarryPositionRobot", m_rightCarryPositionRobot);
     config("leftOrientationBox", m_leftOrientationBox);
@@ -34,6 +34,11 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
 void PickupBox::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
+
+    for (const auto &r : ctl.robots())
+    {
+        mc_rtc::log::info("{}", r.name());
+    }
 
     m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>(
             m_gripperSurfaceLeftGripper, ctl.robots(), 0, m_stiffness, m_weight);
@@ -71,6 +76,9 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_leftCarryPositionRobot.y()  = m_boxHalfWidth;
     m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
 
+    m_crouchOffset = ctl.m_refCoMZ - ctl.robot(m_objectName).posW().translation().z();
+    m_crouchOffset = std::min(m_crouchOffset, ctl.m_refCoMZ - 0.85); // fix for mujoco simulation
+
     addToGui(ctl_);
 }
 
@@ -100,12 +108,13 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
     }
 
     m_leftGraspOffsetRobot  = {0.0, std::abs(m_leftGripperContactOffset), 0.0};
-    m_leftGraspOffsetBox    = {0.0, 0.0, m_leftGripperContactOffset};
     m_rightGraspOffsetRobot = {0.0, -std::abs(m_rightGripperContactOffset), 0.0};
-    m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
 
-    m_leftApproachOffsetBox  = {0.0, 0.0, m_approachOffset};
-    m_rightApproachOffsetBox = {0.0, 0.0, m_approachOffset};
+    m_leftGraspOffsetBox  = {0.0, 0.0, m_leftGripperContactOffset};
+    m_rightGraspOffsetBox = {0.0, 0.0, m_rightGripperContactOffset};
+
+    m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
+    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Right);
 
     if (m_leftGripperTask)
     {
@@ -298,10 +307,6 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
                     [this] { return m_rightGripperContactOffset; },
                     [this](double value) { m_rightGripperContactOffset = value; }),
             mc_rtc::gui::NumberInput(
-                    "Approach offset",
-                    [this] { return m_approachOffset; },
-                    [this](double value) { m_approachOffset = value; }),
-            mc_rtc::gui::NumberInput(
                     "Crouch offset",
                     [this] { return m_crouchOffset; },
                     [this, &ctl_](double value)
@@ -314,19 +319,30 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::NumberInput(
                     "Weight", [this] { return m_weight; }, [this](double value) { m_weight = value; }),
             mc_rtc::gui::ArrayInput(
+                    "Left approach offset robot",
+                    [this] { return m_leftApproachOffsetRobot; },
+                    [this](const Eigen::Vector3d &value)
+                    {
+                        m_leftCarryPositionRobot = value;
+                        m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
+                    }),
+            mc_rtc::gui::ArrayInput(
+                    "Right approach offset robot",
+                    [this] { return m_rightApproachOffsetRobot; },
+                    [this](const Eigen::Vector3d &value)
+                    {
+                        m_rightCarryPositionRobot = value;
+                        m_rightApproachOffsetBox =
+                                BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
+                    }),
+            mc_rtc::gui::ArrayInput(
                     "Left carry position robot",
                     [this] { return m_leftCarryPositionRobot; },
-                    [this](const std::vector<double> &values)
-                    {
-                        if (values.size() == 3) m_leftCarryPositionRobot = Eigen::Vector3d(values.data());
-                    }),
+                    [this](const Eigen::Vector3d &value) { m_leftCarryPositionRobot = value; }),
             mc_rtc::gui::ArrayInput(
                     "Right carry position robot",
                     [this] { return m_rightCarryPositionRobot; },
-                    [this](const std::vector<double> &values)
-                    {
-                        if (values.size() == 3) m_rightCarryPositionRobot = Eigen::Vector3d(values.data());
-                    }));
+                    [this](const Eigen::Vector3d &value) { m_rightCarryPositionRobot = value; }));
 
     ctl.gui()->addElement(
             {"GMB", "Pickup"},
@@ -370,13 +386,13 @@ void PickupBox::updateCoMZ(mc_control::fsm::Controller &ctl_)
         case Phase::None:
         case Phase::RaiseBox:
         {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t(), m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t(), m_crouchOffset * 30.0);
             return;
         }
         case Phase::ApproachBox:
         case Phase::GraspBox:
         {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 30.0);
             return;
         }
         default:

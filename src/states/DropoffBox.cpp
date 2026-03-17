@@ -29,7 +29,8 @@ void DropoffBox::configure(const mc_rtc::Configuration &config)
     config("manualPhaseChange", m_manualPhaseChange);
     config("leftGripperContactOffset", m_leftGripperContactOffset);
     config("rightGripperContactOffset", m_rightGripperContactOffset);
-    config("approachOffset", m_approachOffset);
+    config("leftApproachOffsetRobot", m_leftApproachOffsetRobot);
+    config("rightApproachOffsetRobot", m_rightApproachOffsetRobot);
     config("leftDropPositionRobot", m_leftDropPositionRobot);
     config("rightDropPositionRobot", m_rightDropPositionRobot);
     config("leftOrientationBox", m_leftOrientationBox);
@@ -114,10 +115,8 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
     m_rightGraspOffsetRobot = {0.0, -std::abs(m_rightGripperContactOffset), 0.0};
     m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
 
-    m_leftApproachOffsetRobot  = {0.0, std::abs(m_approachOffset), 0.0};
-    m_leftApproachOffsetBox    = {0.0, 0.0, m_approachOffset};
-    m_rightApproachOffsetRobot = {0.0, -std::abs(m_approachOffset), 0.0};
-    m_rightApproachOffsetBox   = {0.0, 0.0, m_approachOffset};
+    m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
+    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Right);
 
     if (m_leftGripperTask)
     {
@@ -309,10 +308,6 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
                     [this] { return m_rightGripperContactOffset; },
                     [this](double value) { m_rightGripperContactOffset = value; }),
             mc_rtc::gui::NumberInput(
-                    "Approach offset",
-                    [this] { return m_approachOffset; },
-                    [this](double value) { m_approachOffset = value; }),
-            mc_rtc::gui::NumberInput(
                     "Crouch offset",
                     [this] { return m_crouchOffset; },
                     [this, &ctl_](double value)
@@ -324,6 +319,23 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
                     "Stiffness", [this] { return m_stiffness; }, [this](double value) { m_stiffness = value; }),
             mc_rtc::gui::NumberInput(
                     "Weight", [this] { return m_weight; }, [this](double value) { m_weight = value; }),
+            mc_rtc::gui::ArrayInput(
+                    "Left approach offset robot",
+                    [this] { return m_leftApproachOffsetRobot; },
+                    [this](const Eigen::Vector3d &value)
+                    {
+                        m_leftApproachOffsetRobot = value;
+                        m_leftApproachOffsetBox   = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
+                    }),
+            mc_rtc::gui::ArrayInput(
+                    "Right approach offset robot",
+                    [this] { return m_rightApproachOffsetRobot; },
+                    [this](const Eigen::Vector3d &value)
+                    {
+                        m_rightApproachOffsetRobot = value;
+                        m_rightApproachOffsetBox =
+                                BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
+                    }),
             mc_rtc::gui::ArrayInput(
                     "Left drop position robot",
                     [this] { return m_leftDropPositionRobot; },

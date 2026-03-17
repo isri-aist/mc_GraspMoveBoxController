@@ -43,7 +43,6 @@ struct PickupBox : mc_control::fsm::State
         double m_crouchOffset              = 0.05;
         double m_leftGripperContactOffset  = 0.0;
         double m_rightGripperContactOffset = 0.0;
-        double m_approachOffset            = 0.0;
 
         bool m_contactAdded            = false;
         bool m_removeContactAtTeardown = false;
@@ -64,6 +63,9 @@ struct PickupBox : mc_control::fsm::State
 
         Eigen::Vector3d m_leftGraspOffsetRobot;
         Eigen::Vector3d m_rightGraspOffsetRobot;
+
+        Eigen::Vector3d m_leftApproachOffsetRobot;
+        Eigen::Vector3d m_rightApproachOffsetRobot;
 
         Eigen::Vector3d m_leftCarryPositionRobot;
         Eigen::Vector3d m_rightCarryPositionRobot;
