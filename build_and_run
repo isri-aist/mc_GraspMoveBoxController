@@ -1,0 +1,7 @@
+#!/bin/sh
+# Build and run the controller using nvidia gpu when the latter is set on on-demand mode.
+
+cd build || exit
+make install -j18 || exit
+__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia mc_mujoco --sync
+
