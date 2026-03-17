@@ -209,6 +209,8 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
         {
             mc_rtc::log::info("End of retreat phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
 
+            ctl.robot(m_objectName).posW(ctl.config()("robots")(m_objectName)("init_pos"));
+
             output("OK");
             return true;
         }
