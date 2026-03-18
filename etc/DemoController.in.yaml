@@ -252,8 +252,6 @@ states:
 
   Initial:
     base: BWC::Initial
-    configs:
-      autoStartTime: 2.0
 
   Walk:
     base: BWC::GuiWalk
@@ -599,7 +597,7 @@ states:
     states: [ Walk, PickupAndDropLoop ]
 
 transitions:
-  - [ Initial, OK, Main, Strict ]
+  - [ Initial, OK, Main, Auto ]
 
 # Initial state
 init: Initial
