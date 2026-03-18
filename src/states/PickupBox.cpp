@@ -13,6 +13,8 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("objectName", m_objectName);
     config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
+    config("gripperSurfaceLeftGripper", m_gripperSurfaceLeftGripper);
+    config("gripperSurfaceRightGripper", m_gripperSurfaceRightGripper);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
     config("completionEval", m_completionEval);
@@ -35,10 +37,8 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    for (const auto &r : ctl.robots())
-    {
-        mc_rtc::log::info("{}", r.name());
-    }
+    // for (const auto &r : ctl.robots()) mc_rtc::log::info("{}", r.name());
+
 
     m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>(
             m_gripperSurfaceLeftGripper, ctl.robots(), 0, m_stiffness, m_weight);
@@ -55,7 +55,7 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_leftContact = mc_control::Contact(
             ctl.robot().name(),
             ctl.robot(m_objectName).name(),
-            "LeftHandWrench",
+            m_gripperSurfaceLeftGripper,
             m_objectSurfaceLeftGripper,
             mc_rbdyn::Contact::defaultFriction,
             Eigen::Vector6d::Ones());
@@ -63,7 +63,7 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_rightContact = mc_control::Contact(
             ctl.robot().name(),
             ctl.robot(m_objectName).name(),
-            "RightHandWrench",
+            m_gripperSurfaceRightGripper,
             m_objectSurfaceRightGripper,
             mc_rbdyn::Contact::defaultFriction,
             Eigen::Vector6d::Ones());

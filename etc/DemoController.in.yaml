@@ -366,8 +366,8 @@ states:
     stiffness: 2
     weight: 1000
     objectName: zbox0
-    objectSurfaceLeftGripper: Right
-    objectSurfaceRightGripper: Left
+    objectSurfaceLeftGripper: Back
+    objectSurfaceRightGripper: Front
     leftPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
     rightPositionRobot: [ 0.3, 0.0, -0. ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]

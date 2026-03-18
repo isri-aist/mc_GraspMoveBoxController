@@ -22,6 +22,8 @@ struct HoldBox : mc_control::fsm::State
         std::string m_objectName;
         std::string m_objectSurfaceLeftGripper;
         std::string m_objectSurfaceRightGripper;
+        std::string m_gripperSurfaceLeftGripper  = "LeftHandSupportPlate";
+        std::string m_gripperSurfaceRightGripper = "RightHandSupportPlate";
 
         Eigen::Vector3d m_leftPositionRobot;
         Eigen::Vector3d m_rightPositionRobot;

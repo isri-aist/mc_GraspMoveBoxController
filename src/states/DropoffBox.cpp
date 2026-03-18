@@ -51,11 +51,11 @@ void DropoffBox::start(mc_control::fsm::Controller &ctl_)
     {
         mc_rtc::log::info("contact: {}:{} <-> {}:{}", c.r1->c_str(), c.r1Surface, c.r2->c_str(), c.r2Surface);
 
-        if (c.r1 == ctl.robot().name() && c.r1Surface == "LeftHandWrench" && c.r2 == m_objectName &&
+        if (c.r1 == ctl.robot().name() && c.r1Surface == m_gripperSurfaceLeftGripper && c.r2 == m_objectName &&
             c.r2Surface == m_objectSurfaceLeftGripper)
             hasLeftContact = true;
 
-        if (c.r1 == ctl.robot().name() && c.r1Surface == "RightHandWrench" && c.r2 == m_objectName &&
+        if (c.r1 == ctl.robot().name() && c.r1Surface == m_gripperSurfaceRightGripper && c.r2 == m_objectName &&
             c.r2Surface == m_objectSurfaceRightGripper)
             hasRightContact = true;
     }
@@ -208,6 +208,8 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
         {
             mc_rtc::log::info("End of retreat phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
 
+            // reset box position because it doesn't have physics and stays in mid air
+            // TODO: find a better fix
             ctl.robot(m_objectName).posW(ctl.config()("robots")(m_objectName)("init_pos"));
 
             output("OK");

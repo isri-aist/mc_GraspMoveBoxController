@@ -11,12 +11,14 @@
 
 void HoldBox::configure(const mc_rtc::Configuration &config)
 {
-    mc_rtc::log::info("GoToDropoffPose:\n{}", config.dump(true, true));
+    mc_rtc::log::info("HoldBox:\n{}", config.dump(true, true));
 
     config("robotReferenceFrame", m_robotReferenceFrame);
     config("objectName", m_objectName);
     config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
+    config("gripperSurfaceLeftGripper", m_gripperSurfaceLeftGripper);
+    config("gripperSurfaceRightGripper", m_gripperSurfaceRightGripper);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
     config("leftPositionRobot", m_leftPositionRobot);
@@ -35,15 +37,16 @@ void HoldBox::start(mc_control::fsm::Controller &ctl_)
     {
         mc_rtc::log::info("contact: {}:{} <-> {}:{}", c.r1->c_str(), c.r1Surface, c.r2->c_str(), c.r2Surface);
 
-        if (c.r1 == ctl.robot().name() && c.r1Surface == "LeftHandWrench" && c.r2 == m_objectName &&
+        if (c.r1 == ctl.robot().name() && c.r1Surface == m_gripperSurfaceLeftGripper && c.r2 == m_objectName &&
             c.r2Surface == m_objectSurfaceLeftGripper)
             hasLeftContact = true;
 
-        if (c.r1 == ctl.robot().name() && c.r1Surface == "RightHandWrench" && c.r2 == m_objectName &&
+        if (c.r1 == ctl.robot().name() && c.r1Surface == m_gripperSurfaceRightGripper && c.r2 == m_objectName &&
             c.r2Surface == m_objectSurfaceRightGripper)
             hasRightContact = true;
     }
-    if (!hasLeftContact || !hasRightContact) mc_rtc::log::error("Didn't find box contacts");
+
+    if (!(hasLeftContact && hasRightContact)) mc_rtc::log::error("Didn't find box contacts");
 
     m_boxHalfWidth = 0.5 *
             (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
