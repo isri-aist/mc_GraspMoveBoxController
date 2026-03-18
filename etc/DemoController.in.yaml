@@ -252,6 +252,8 @@ states:
 
   Initial:
     base: BWC::Initial
+    configs:
+      autoStartTime: 0.0
 
   Walk:
     base: BWC::GuiWalk

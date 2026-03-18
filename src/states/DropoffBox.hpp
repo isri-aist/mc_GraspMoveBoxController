@@ -3,7 +3,7 @@
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/TransformTask.h>
 
-#include "../../../../src/mc_rtc/include/mc_tasks/AdmittanceTask.h"
+#include <mc_tasks/AdmittanceTask.h>
 #include "mc_control/Contact.h"
 
 struct DropoffBox : mc_control::fsm::State
