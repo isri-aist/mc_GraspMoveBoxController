@@ -389,13 +389,13 @@ void DropoffBox::updateCoMZ(mc_control::fsm::Controller &ctl_)
         case Phase::None:
         case Phase::Retreat:
         {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t(), m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1e-2, m_crouchOffset * 30.0);
             return;
         }
         case Phase::LowerBox:
         case Phase::DropBox:
         {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1e-2, m_crouchOffset * 30.0);
             return;
         }
         default:
