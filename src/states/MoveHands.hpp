@@ -26,12 +26,12 @@ struct MoveHands : mc_control::fsm::State
         double m_stiffness = 2.0;
         double m_weight    = 1000.0;
 
-        bool m_waitForEvalThreshold = false;
+        bool m_started              = false;
+        bool m_autoStart            = false;
 
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_leftGripperTask;
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_rightGripperTask;
 
         void addToGui(mc_control::fsm::Controller &ctl_);
         void removeFromGui(mc_control::fsm::Controller &ctl_);
-        void rebuildTasks(mc_control::fsm::Controller &ctl_);
 };

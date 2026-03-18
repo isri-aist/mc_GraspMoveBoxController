@@ -22,36 +22,48 @@ void MoveHands::configure(const mc_rtc::Configuration &config)
     config("robotReferenceFrame", m_robotReferenceFrame);
     config("leftHandFrame", m_leftHandFrame);
     config("rightHandFrame", m_rightHandFrame);
+    config("autoStart", m_autoStart);
+
+    m_started = m_autoStart;
 }
 
 void MoveHands::start(mc_control::fsm::Controller &ctl_)
 {
-    rebuildTasks(ctl_);
+    auto &ctl = static_cast<DemoController &>(ctl_);
+
+    m_leftGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
+            m_leftHandFrame, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
+    m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
+            m_rightHandFrame, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
+    m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
+    m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
+
     addToGui(ctl_);
 }
 
 bool MoveHands::run(mc_control::fsm::Controller &ctl_)
 {
-    if (m_leftGripperTask)
+    auto &ctl = static_cast<DemoController &>(ctl_);
+
+    if (m_started)
     {
-        m_leftGripperTask->positionTask->stiffness(m_stiffness);
-        m_leftGripperTask->positionTask->weight(m_weight);
-        m_leftGripperTask->orientationTask->stiffness(m_stiffness);
-        m_leftGripperTask->orientationTask->weight(m_weight);
-        m_leftGripperTask->set_ef_pose({m_leftHandTargetOrientationRobot, m_leftHandTargetPositionRobot});
+        ctl.solver().addTask(m_leftGripperTask);
+        ctl.solver().addTask(m_rightGripperTask);
     }
 
-    if (m_rightGripperTask)
-    {
-        m_rightGripperTask->positionTask->stiffness(m_stiffness);
-        m_rightGripperTask->positionTask->weight(m_weight);
-        m_rightGripperTask->orientationTask->stiffness(m_stiffness);
-        m_rightGripperTask->orientationTask->weight(m_weight);
-        m_rightGripperTask->set_ef_pose({m_rightHandTargetOrientationRobot, m_rightHandTargetPositionRobot});
-    }
+    m_leftGripperTask->positionTask->stiffness(m_stiffness);
+    m_leftGripperTask->positionTask->weight(m_weight);
+    m_leftGripperTask->orientationTask->stiffness(m_stiffness);
+    m_leftGripperTask->orientationTask->weight(m_weight);
+    m_leftGripperTask->set_ef_pose({m_leftHandTargetOrientationRobot, m_leftHandTargetPositionRobot});
 
-    if (!m_waitForEvalThreshold) return true;
-    return false;
+    m_rightGripperTask->positionTask->stiffness(m_stiffness);
+    m_rightGripperTask->positionTask->weight(m_weight);
+    m_rightGripperTask->orientationTask->stiffness(m_stiffness);
+    m_rightGripperTask->orientationTask->weight(m_weight);
+    m_rightGripperTask->set_ef_pose({m_rightHandTargetOrientationRobot, m_rightHandTargetPositionRobot});
+
+    return true;
 }
 
 void MoveHands::teardown(mc_control::fsm::Controller &ctl_)
@@ -67,6 +79,11 @@ void MoveHands::teardown(mc_control::fsm::Controller &ctl_)
 void MoveHands::addToGui(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
+
+    if (!m_autoStart)
+    {
+        ctl.gui()->addElement({"GMB", "MoveHands"}, mc_rtc::gui::Button("Start", [this] { m_started = true; }));
+    }
 
     ctl.gui()->addElement(
             {"GMB", "MoveHands"},
@@ -116,7 +133,6 @@ void MoveHands::addToGui(mc_control::fsm::Controller &ctl_)
                     {
                         if (frame == m_robotReferenceFrame) return;
                         m_robotReferenceFrame = frame;
-                        rebuildTasks(ctl_);
                     }),
             mc_rtc::gui::ComboInput(
                     "Left hand frame",
@@ -126,7 +142,6 @@ void MoveHands::addToGui(mc_control::fsm::Controller &ctl_)
                     {
                         if (frame == m_leftHandFrame) return;
                         m_leftHandFrame = frame;
-                        rebuildTasks(ctl_);
                     }),
             mc_rtc::gui::ComboInput(
                     "Right hand frame",
@@ -136,7 +151,6 @@ void MoveHands::addToGui(mc_control::fsm::Controller &ctl_)
                     {
                         if (frame == m_rightHandFrame) return;
                         m_rightHandFrame = frame;
-                        rebuildTasks(ctl_);
                     }));
 }
 
@@ -144,26 +158,6 @@ void MoveHands::removeFromGui(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
     ctl.gui()->removeCategory({"GMB", "MoveHands"});
-}
-
-void MoveHands::rebuildTasks(mc_control::fsm::Controller &ctl_)
-{
-    auto &ctl = static_cast<DemoController &>(ctl_);
-
-    if (m_leftGripperTask) ctl.solver().removeTask(m_leftGripperTask);
-    if (m_rightGripperTask) ctl.solver().removeTask(m_rightGripperTask);
-
-    m_leftGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
-            m_leftHandFrame, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
-    m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
-    m_leftGripperTask->set_ef_pose({m_leftHandTargetOrientationRobot, m_leftHandTargetPositionRobot});
-    ctl.solver().addTask(m_leftGripperTask);
-
-    m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
-            m_rightHandFrame, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
-    m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
-    m_rightGripperTask->set_ef_pose({m_rightHandTargetOrientationRobot, m_rightHandTargetPositionRobot});
-    ctl.solver().addTask(m_rightGripperTask);
 }
 
 EXPORT_SINGLE_STATE("MoveHands", MoveHands)
