@@ -1,6 +1,6 @@
 #pragma once
 #include <mc_control/fsm/State.h>
-#include <mc_tasks/RelativeEndEffectorTask.h>
+#include <mc_tasks/AdmittanceTask.h>
 
 struct HoldBox : mc_control::fsm::State
 {
@@ -11,8 +11,8 @@ struct HoldBox : mc_control::fsm::State
         void teardown(mc_control::fsm::Controller &) override;
 
     private:
-        std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_leftGripperTask;
-        std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_rightGripperTask;
+        std::shared_ptr<mc_tasks::force::AdmittanceTask> m_leftGripperTask;
+        std::shared_ptr<mc_tasks::force::AdmittanceTask> m_rightGripperTask;
 
         double m_stiffness    = 2.0;
         double m_weight       = 2000.0;
@@ -25,6 +25,9 @@ struct HoldBox : mc_control::fsm::State
         std::string m_gripperSurfaceLeftGripper  = "LeftHandSupportPlate";
         std::string m_gripperSurfaceRightGripper = "RightHandSupportPlate";
 
+        sva::ForceVecd m_leftCarryWrench  = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
+        sva::ForceVecd m_rightCarryWrench = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
+
         Eigen::Vector3d m_leftPositionRobot;
         Eigen::Vector3d m_rightPositionRobot;
 
@@ -33,5 +36,4 @@ struct HoldBox : mc_control::fsm::State
 
         void addToGui(mc_control::fsm::Controller &);
         void removeFromGui(mc_control::fsm::Controller &);
-        void rebuildTasks(mc_control::fsm::Controller &);
 };
