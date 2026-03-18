@@ -373,6 +373,10 @@ states:
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
 
+  HoldBox0WithShoulders:
+    base: Parallel
+    states: [ ShoulderPose, HoldBox0 ]
+
   GoToDrop00: # start at [ 1.25, 0.3, 0.0 ]
     base: GoToConfigured
     destinationPoseWorld: [ 1.0, 0.3, 0.0 ]
@@ -585,7 +589,8 @@ states:
     ResetPostures: false
     transitions:
       - [ RaiseHandsWithShoulders, OK, PickupBox0WithShoulders, Auto ]
-      - [ PickupBox0WithShoulders, OK, DropoffBox0WithShoulders, Auto ]
+      - [ PickupBox0WithShoulders, OK, HoldBox0WithShoulders, Auto ]
+      - [ HoldBox0WithShoulders, OK, DropoffBox0WithShoulders, Auto ]
       - [ DropoffBox0WithShoulders, OK, PickupBox0WithShoulders, Auto ]
 
   Main:

@@ -76,8 +76,8 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_leftCarryPositionRobot.y()  = m_boxHalfWidth;
     m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
 
-    m_crouchOffset = ctl.m_refCoMZ - ctl.robot(m_objectName).posW().translation().z();
-    m_crouchOffset = std::min(m_crouchOffset, ctl.m_refCoMZ - 0.85); // fix for mujoco simulation
+    m_crouchOffset = ctl.m_refCoMZ - ctl.robot(m_objectName).posW().translation().z() - 0.1;
+    // m_crouchOffset = std::min(m_crouchOffset, ctl.m_refCoMZ - 0.85); // fix for mujoco simulation
 
     addToGui(ctl_);
 }
