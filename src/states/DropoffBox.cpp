@@ -25,6 +25,8 @@ void DropoffBox::configure(const mc_rtc::Configuration &config)
     config("completionEval", m_completionEval);
     config("completionSpeed", m_completionSpeed);
     config("crouchOffset", m_crouchOffset);
+    config("leftCarryWrench", m_leftCarryWrench);
+    config("rightCarryWrench", m_rightCarryWrench);
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
     config("manualPhaseChange", m_manualPhaseChange);
     config("leftGripperContactOffset", m_leftGripperContactOffset);
@@ -62,16 +64,18 @@ void DropoffBox::start(mc_control::fsm::Controller &ctl_)
     if (!hasLeftContact || !hasRightContact) mc_rtc::log::error_and_throw("Didn't find box contacts");
     m_contactAdded = true;
 
-    m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>(
+    m_leftGripperTask = std::make_shared<mc_tasks::force::AdmittanceTask>(
             m_gripperSurfaceLeftGripper, ctl.robots(), 0, m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
-    m_leftGripperTask->target(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
+    m_leftGripperTask->targetPose(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
+    if (m_contactAdded) m_leftGripperTask->targetWrench(m_leftCarryWrench);
     ctl.solver().addTask(m_leftGripperTask);
 
-    m_rightGripperTask = std::make_shared<mc_tasks::TransformTask>(
+    m_rightGripperTask = std::make_shared<mc_tasks::force::AdmittanceTask>(
             m_gripperSurfaceRightGripper, ctl.robots(), 0, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
-    m_rightGripperTask->target(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
+    m_rightGripperTask->targetPose(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
+    if (m_contactAdded) m_rightGripperTask->targetWrench(m_rightCarryWrench);
     ctl.solver().addTask(m_rightGripperTask);
 
     m_boxHalfWidth = 0.5 *
@@ -118,16 +122,11 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
     m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
     m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
 
-    if (m_leftGripperTask)
-    {
-        m_leftGripperTask->stiffness(m_stiffness);
-        m_leftGripperTask->weight(m_weight);
-    }
-    if (m_rightGripperTask)
-    {
-        m_rightGripperTask->stiffness(m_stiffness);
-        m_rightGripperTask->weight(m_weight);
-    }
+    m_leftGripperTask->stiffness(m_stiffness);
+    m_leftGripperTask->weight(m_weight);
+
+    m_rightGripperTask->stiffness(m_stiffness);
+    m_rightGripperTask->weight(m_weight);
 
     const bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
             m_leftGripperTask->speed().norm() < m_completionSpeed &&
@@ -165,13 +164,15 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
             }
         }
 
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_leftOrientationRobot, m_leftDropPositionRobot + m_leftGraspOffsetRobot});
+        m_leftGripperTask->targetPose(
+                sva::PTransformd{m_leftOrientationRobot, m_leftDropPositionRobot + m_leftGraspOffsetRobot} *
+                ctl.robot().frame(m_robotReferenceFrame).position());
+        m_leftGripperTask->targetWrench(m_leftCarryWrench);
 
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightOrientationRobot, m_rightDropPositionRobot + m_rightGraspOffsetRobot});
+        m_rightGripperTask->targetPose(
+                sva::PTransformd{m_rightOrientationRobot, m_rightDropPositionRobot + m_rightGraspOffsetRobot} *
+                ctl.robot().frame(m_robotReferenceFrame).position());
+        m_rightGripperTask->targetWrench(m_rightCarryWrench);
     }
 
     if (m_phase == Phase::DropBox)
@@ -194,12 +195,14 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceLeftGripper,
                 {leftOffsetRotation * m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
+        m_leftGripperTask->targetWrench(sva::ForceVecd::Zero());
 
         m_rightGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
                 {rightOffsetRotation * m_rightOrientationBox,
                  (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
+        m_rightGripperTask->targetWrench(sva::ForceVecd::Zero());
     }
 
     if (m_phase == Phase::Retreat)
@@ -216,17 +219,19 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
             return true;
         }
 
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_leftOrientationRobot,
-                 m_leftDropPositionRobot + m_leftGraspOffsetRobot + m_leftApproachOffsetRobot +
-                         Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
+        m_leftGripperTask->targetPose(
+                sva::PTransformd{
+                        m_leftOrientationRobot,
+                        m_leftDropPositionRobot + m_leftGraspOffsetRobot + m_leftApproachOffsetRobot +
+                                Eigen::Vector3d{0.0, 0.0, m_crouchOffset}} *
+                ctl.robot().frame(m_robotReferenceFrame).position());
 
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightOrientationRobot,
-                 m_rightDropPositionRobot + m_rightGraspOffsetRobot + m_rightApproachOffsetRobot +
-                         Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
+        m_rightGripperTask->targetPose(
+                sva::PTransformd{
+                        m_rightOrientationRobot,
+                        m_rightDropPositionRobot + m_rightGraspOffsetRobot + m_rightApproachOffsetRobot +
+                                Eigen::Vector3d{0.0, 0.0, m_crouchOffset}} *
+                ctl.robot().frame(m_robotReferenceFrame).position());
     }
 
     return false;
@@ -338,6 +343,14 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
                         m_rightApproachOffsetBox =
                                 BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
                     }),
+            mc_rtc::gui::ArrayInput(
+                    "Left carry wrench robot",
+                    [this] { return m_leftCarryWrench; },
+                    [this](const sva::ForceVecd &value) { m_leftCarryWrench = value; }),
+            mc_rtc::gui::ArrayInput(
+                    "Right carry wrench robot",
+                    [this] { return m_rightCarryWrench; },
+                    [this](const sva::ForceVecd &value) { m_rightCarryWrench = value; }),
             mc_rtc::gui::ArrayInput(
                     "Left drop position robot",
                     [this] { return m_leftDropPositionRobot; },

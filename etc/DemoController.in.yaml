@@ -413,12 +413,13 @@ states:
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-4
-    leftApproachOffsetRobot: [ 0.0, 0.1, 0.035 ]
-    rightApproachOffsetRobot: [ 0.0, -0.1, 0.035 ]
+    crouchOffset: 0.1
+    leftApproachOffsetRobot: [ 0.0, 0.1, 0.05 ]
+    rightApproachOffsetRobot: [ 0.0, -0.1, 0.05 ]
     leftGripperContactOffset: -0.06
     rightGripperContactOffset: -0.1
-    leftDropPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
-    rightDropPositionRobot: [ 0.3, 0.0, -0.1 ]
+    leftDropPositionRobot: [ 0.4, 0.0, -0.1 ] # y value is automatically set with box width
+    rightDropPositionRobot: [ 0.4, 0.0, -0.1 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     leftOrientationBox: [ -0.5, -0.5,  0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]

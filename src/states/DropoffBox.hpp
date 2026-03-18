@@ -3,6 +3,7 @@
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/TransformTask.h>
 
+#include "../../../../src/mc_rtc/include/mc_tasks/AdmittanceTask.h"
 #include "mc_control/Contact.h"
 
 struct DropoffBox : mc_control::fsm::State
@@ -22,8 +23,8 @@ struct DropoffBox : mc_control::fsm::State
             Retreat
         };
 
-        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask;
-        std::shared_ptr<mc_tasks::TransformTask> m_rightGripperTask;
+        std::shared_ptr<mc_tasks::force::AdmittanceTask> m_leftGripperTask;
+        std::shared_ptr<mc_tasks::force::AdmittanceTask> m_rightGripperTask;
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_objectName;
@@ -47,6 +48,9 @@ struct DropoffBox : mc_control::fsm::State
         bool m_removeContactAtTeardown = true;
         bool m_manualPhaseChange       = true;
         bool m_phaseAdvanceRequested   = false;
+
+        sva::ForceVecd m_leftCarryWrench  = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
+        sva::ForceVecd m_rightCarryWrench = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
 
         Eigen::Vector3d m_leftGraspOffsetBox;
         Eigen::Vector3d m_rightGraspOffsetBox;
