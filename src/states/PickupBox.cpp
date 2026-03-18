@@ -21,6 +21,8 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("completionSpeed", m_completionSpeed);
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
     config("manualPhaseChange", m_manualPhaseChange);
+    config("leftCarryWrench", m_leftCarryWrench);
+    config("rightCarryWrench", m_rightCarryWrench);
     config("leftGripperContactOffset", m_leftGripperContactOffset);
     config("rightGripperContactOffset", m_rightGripperContactOffset);
     config("leftApproachOffsetRobot", m_leftApproachOffsetRobot);
@@ -39,17 +41,16 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
 
     // for (const auto &r : ctl.robots()) mc_rtc::log::info("{}", r.name());
 
-
-    m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>(
+    m_leftGripperTask = std::make_shared<mc_tasks::force::AdmittanceTask>(
             m_gripperSurfaceLeftGripper, ctl.robots(), 0, m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
-    m_leftGripperTask->target(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
+    m_leftGripperTask->targetPose(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
     ctl.solver().addTask(m_leftGripperTask);
 
-    m_rightGripperTask = std::make_shared<mc_tasks::TransformTask>(
+    m_rightGripperTask = std::make_shared<mc_tasks::force::AdmittanceTask>(
             m_gripperSurfaceRightGripper, ctl.robots(), 0, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
-    m_rightGripperTask->target(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
+    m_rightGripperTask->targetPose(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
     ctl.solver().addTask(m_rightGripperTask);
 
     m_leftContact = mc_control::Contact(
@@ -116,16 +117,11 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
     m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
     m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
 
-    if (m_leftGripperTask)
-    {
-        m_leftGripperTask->stiffness(m_stiffness);
-        m_leftGripperTask->weight(m_weight);
-    }
-    if (m_rightGripperTask)
-    {
-        m_rightGripperTask->stiffness(m_stiffness);
-        m_rightGripperTask->weight(m_weight);
-    }
+    m_leftGripperTask->stiffness(m_stiffness);
+    m_leftGripperTask->weight(m_weight);
+
+    m_rightGripperTask->stiffness(m_stiffness);
+    m_rightGripperTask->weight(m_weight);
 
     const bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
             m_leftGripperTask->speed().norm() < m_completionSpeed &&
@@ -206,13 +202,16 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
             return true;
         }
 
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot});
+        m_leftGripperTask->targetWrench(m_leftCarryWrench);
+        m_rightGripperTask->targetWrench(m_rightCarryWrench);
 
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot});
+        m_leftGripperTask->targetPose(
+                sva::PTransformd{m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot} *
+                ctl.robot().frame(m_robotReferenceFrame).position());
+
+        m_rightGripperTask->targetPose(
+                sva::PTransformd{m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot} *
+                ctl.robot().frame(m_robotReferenceFrame).position());
     }
 
     return false;
@@ -342,7 +341,15 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::ArrayInput(
                     "Right carry position robot",
                     [this] { return m_rightCarryPositionRobot; },
-                    [this](const Eigen::Vector3d &value) { m_rightCarryPositionRobot = value; }));
+                    [this](const Eigen::Vector3d &value) { m_rightCarryPositionRobot = value; }),
+            mc_rtc::gui::ArrayInput(
+                    "Left carry wrench robot",
+                    [this] { return m_leftCarryWrench; },
+                    [this](const sva::ForceVecd &value) { m_leftCarryWrench = value; }),
+            mc_rtc::gui::ArrayInput(
+                    "Right carry wrench robot",
+                    [this] { return m_rightCarryWrench; },
+                    [this](const sva::ForceVecd &value) { m_rightCarryWrench = value; }));
 
     ctl.gui()->addElement(
             {"GMB", "Pickup"},

@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <mc_control/fsm/State.h>
+#include <mc_tasks/AdmittanceTask.h>
 #include <mc_tasks/TransformTask.h>
 
 #include "mc_control/Contact.h"
@@ -23,8 +24,8 @@ struct PickupBox : mc_control::fsm::State
             RaiseBox
         };
 
-        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask;
-        std::shared_ptr<mc_tasks::TransformTask> m_rightGripperTask;
+        std::shared_ptr<mc_tasks::force::AdmittanceTask> m_leftGripperTask;
+        std::shared_ptr<mc_tasks::force::AdmittanceTask> m_rightGripperTask;
 
         std::string m_robotReferenceFrame = "CHEST_Y_LINK";
         std::string m_objectName;
@@ -48,6 +49,9 @@ struct PickupBox : mc_control::fsm::State
         bool m_removeContactAtTeardown = false;
         bool m_manualPhaseChange       = true;
         bool m_phaseAdvanceRequested   = false;
+
+        sva::ForceVecd m_leftCarryWrench  = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
+        sva::ForceVecd m_rightCarryWrench = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
 
         mc_control::Contact m_leftContact{};
         mc_control::Contact m_rightContact{};
