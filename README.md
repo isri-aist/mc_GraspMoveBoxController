@@ -12,6 +12,7 @@ The main configuration is `etc/DemoController.in.yaml`.
 
 ## TODO
 
+- fix `centroidalManager_->setRefComZ` refusing to move CoMZ
 - admittance task should be only active up until contact
   - switch back hold box to position task
   - switch back dropoff to position task

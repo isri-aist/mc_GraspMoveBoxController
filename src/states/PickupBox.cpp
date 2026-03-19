@@ -434,13 +434,13 @@ void PickupBox::updateCoMZ(mc_control::fsm::Controller &ctl_)
         case Phase::None:
         case Phase::RaiseBox:
         {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1e-2, m_crouchOffset * 30.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1.0, m_crouchOffset * 30.0);
             return;
         }
         case Phase::ApproachBox:
         case Phase::GraspBox:
         {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1e-2, m_crouchOffset * 30.0);
+            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1.0, m_crouchOffset * 30.0);
             return;
         }
         default:
