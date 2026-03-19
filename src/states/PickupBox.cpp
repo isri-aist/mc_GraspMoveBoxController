@@ -154,6 +154,8 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
 
         m_phase = Phase::ApproachBox;
         updateCoMZ(ctl_);
+
+        return false;
     }
 
     if (m_phase == Phase::ApproachBox)
@@ -167,6 +169,8 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
 
             m_phase = Phase::GraspBox;
             updateCoMZ(ctl_);
+
+            return false;
         }
 
         m_leftGripperTask->targetSurface(
@@ -201,6 +205,8 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
 
             m_phase = Phase::RaiseBox;
             updateCoMZ(ctl_);
+
+            return false;
         }
 
         m_leftGripperTask->targetSurface(
