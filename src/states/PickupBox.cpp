@@ -123,10 +123,14 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
     m_rightGripperTask->stiffness(m_stiffness);
     m_rightGripperTask->weight(m_weight);
 
-    const bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
+    bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
             m_leftGripperTask->speed().norm() < m_completionSpeed &&
             m_rightGripperTask->eval().norm() < m_completionEval &&
             m_rightGripperTask->speed().norm() < m_completionSpeed;
+    if (m_phase == Phase::GraspBox)
+        taskCompleted = m_leftGripperTask->measuredWrench().force().x() > m_leftCarryWrench.force().x() &&
+                m_rightGripperTask->measuredWrench().force().x() > m_rightCarryWrench.force().x();
+
     bool goToNextPhase = m_phaseAdvanceRequested || (!m_manualPhaseChange && taskCompleted);
 
     if (m_phase == Phase::None && (!m_manualPhaseChange || m_phaseAdvanceRequested))
@@ -190,6 +194,18 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
                 {m_rightOrientationBox, m_rightGraspOffsetBox});
+
+        auto dimStiffness = Eigen::Vector6d(m_stiffness, m_stiffness, m_stiffness, 1.0, m_stiffness, m_stiffness);
+        auto dimDamping   = Eigen::Vector6d(6.3, 6.3, 6.3, 300.0, 6.3, 6.3);
+
+        m_leftGripperTask->targetWrench(m_leftCarryWrench);
+        m_leftGripperTask->admittance({{0, 0, 0}, {0.001, 0, 0}});
+        m_leftGripperTask->stiffness(Eigen::VectorXd(dimStiffness));
+        m_leftGripperTask->damping(Eigen::VectorXd(dimDamping));
+        m_rightGripperTask->targetWrench(m_rightCarryWrench);
+        m_rightGripperTask->admittance({{0, 0, 0}, {0.001, 0, 0}});
+        m_rightGripperTask->stiffness(Eigen::VectorXd(dimStiffness));
+        m_rightGripperTask->damping(Eigen::VectorXd(dimDamping));
     }
 
     if (m_phase == Phase::RaiseBox)
@@ -201,9 +217,6 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
             output("OK");
             return true;
         }
-
-        m_leftGripperTask->targetWrench(m_leftCarryWrench);
-        m_rightGripperTask->targetWrench(m_rightCarryWrench);
 
         m_leftGripperTask->targetPose(
                 sva::PTransformd{m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot} *

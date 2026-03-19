@@ -50,8 +50,8 @@ struct PickupBox : mc_control::fsm::State
         bool m_manualPhaseChange       = true;
         bool m_phaseAdvanceRequested   = false;
 
-        sva::ForceVecd m_leftCarryWrench  = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
-        sva::ForceVecd m_rightCarryWrench = {{0.0, 0.0, 0.0}, {0.0, 10.0, 0.0}};
+        sva::ForceVecd m_leftCarryWrench  = {{0.0, 0.0, 0.0}, {10.0, 0.0, 0.0}};
+        sva::ForceVecd m_rightCarryWrench = {{0.0, 0.0, 0.0}, {10.0, 0.0, 0.0}};
 
         mc_control::Contact m_leftContact{};
         mc_control::Contact m_rightContact{};
