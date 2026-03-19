@@ -12,8 +12,10 @@ The main configuration is `etc/DemoController.in.yaml`.
 
 ## TODO
 
-- Tune footstep manager (double support ratio, etc)
-- Figure out the shoulder orientation task issues
+- admittance task should be only active up until contact
+  - switch back hold box to position task
+  - switch back dropoff to position task
+  - deactivate admittance when contact is set in pickup
 
 ## What is in this package
 
