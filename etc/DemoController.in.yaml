@@ -335,22 +335,23 @@ states:
     objectSurfaceRightGripper: Front
     stiffness: 10
     weight: 7000
-    timeout: 3.0
+    admittanceStiffness: 1.0
+    admittanceDamping: 300.0
+    leftAdmittanceWrenchTarget: 30.0 # somehow needs to be 3x higher than right
+    rightAdmittanceWrenchTarget: 10.0
+    admittanceCoefficient: 1.0
     completionEval: 0.05
     completionSpeed: 2.0e-4
-    leftApproachOffsetRobot: [ 0.0, 0.1, -0.01 ]
-    rightApproachOffsetRobot: [ 0.0, -0.1, -0.01 ]
-    crouchOffset: 0.06
     leftGripperContactOffset: -0.06
     rightGripperContactOffset: -0.1
-    leftRaisePositionRobot: [ 0.15, 0.3, -0.2 ]
-    rightRaisePositionRobot: [ 0.15, -0.3, -0.2 ]
+    leftApproachOffsetRobot: [ 0.0, 0.1, -0.01 ]
+    rightApproachOffsetRobot: [ 0.0, -0.1, -0.01 ]
     leftCarryPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
     rightCarryPositionRobot: [ 0.3, 0.0, -0. ]
-    leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
-    rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     leftOrientationBox: [ -0.5, -0.5,  0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
     rightOrientationBox: [ 0.5, -0.5, -0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
+    leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
+    rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
 
   PickupBox0WithShoulders:
     base: Parallel

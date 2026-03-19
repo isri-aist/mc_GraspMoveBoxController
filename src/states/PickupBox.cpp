@@ -17,12 +17,15 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("gripperSurfaceRightGripper", m_gripperSurfaceRightGripper);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
+    config("admittanceStiffness", m_admittanceStiffness);
+    config("admittanceDamping", m_admittanceDamping);
+    config("leftAdmittanceWrenchTarget", m_leftAdmittanceWrenchTarget);
+    config("rightAdmittanceWrenchTarget", m_rightAdmittanceWrenchTarget);
+    config("admittanceCoefficient", m_admittanceCoefficient);
     config("completionEval", m_completionEval);
     config("completionSpeed", m_completionSpeed);
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
     config("manualPhaseChange", m_manualPhaseChange);
-    config("leftCarryWrench", m_leftCarryWrench);
-    config("rightCarryWrench", m_rightCarryWrench);
     config("leftGripperContactOffset", m_leftGripperContactOffset);
     config("rightGripperContactOffset", m_rightGripperContactOffset);
     config("leftApproachOffsetRobot", m_leftApproachOffsetRobot);
@@ -108,6 +111,15 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
+    m_dimStiffness =
+            Eigen::Vector6d(m_stiffness, m_stiffness, m_stiffness, m_admittanceStiffness, m_stiffness, m_stiffness);
+    m_dimDamping = Eigen::Vector6d(6.3, 6.3, 6.3, m_admittanceDamping, 6.3, 6.3);
+
+    m_admittanceCoefficients = {{0, 0, 0}, {m_admittanceCoefficient, 0, 0}};
+
+    m_leftCarryWrench  = {{0.0, 0.0, 0.0}, {m_leftAdmittanceWrenchTarget, 0.0, 0.0}};
+    m_rightCarryWrench = {{0.0, 0.0, 0.0}, {m_rightAdmittanceWrenchTarget, 0.0, 0.0}};
+
     m_leftGraspOffsetRobot  = {0.0, std::abs(m_leftGripperContactOffset), 0.0};
     m_rightGraspOffsetRobot = {0.0, -std::abs(m_rightGripperContactOffset), 0.0};
 
@@ -177,8 +189,14 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
             m_phaseAdvanceRequested = false;
             goToNextPhase           = false;
 
+            m_leftGripperTask->targetWrench(sva::ForceVecd::Zero());
+            m_leftGripperTask->admittance(sva::ForceVecd::Zero());
+            m_rightGripperTask->targetWrench(sva::ForceVecd::Zero());
+            m_rightGripperTask->admittance(sva::ForceVecd::Zero());
+
             ctl.addContact(m_leftContact);
             ctl.addContact(m_rightContact);
+
             m_contactAdded = true;
 
             m_phase = Phase::RaiseBox;
@@ -195,17 +213,15 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 m_objectSurfaceRightGripper,
                 {m_rightOrientationBox, m_rightGraspOffsetBox});
 
-        auto dimStiffness = Eigen::Vector6d(m_stiffness, m_stiffness, m_stiffness, 1.0, m_stiffness, m_stiffness);
-        auto dimDamping   = Eigen::Vector6d(6.3, 6.3, 6.3, 300.0, 6.3, 6.3);
-
         m_leftGripperTask->targetWrench(m_leftCarryWrench);
-        m_leftGripperTask->admittance({{0, 0, 0}, {0.001, 0, 0}});
-        m_leftGripperTask->stiffness(Eigen::VectorXd(dimStiffness));
-        m_leftGripperTask->damping(Eigen::VectorXd(dimDamping));
+        m_leftGripperTask->admittance(m_admittanceCoefficients);
+        m_leftGripperTask->stiffness(m_dimStiffness);
+        m_leftGripperTask->damping(m_dimDamping);
+
         m_rightGripperTask->targetWrench(m_rightCarryWrench);
-        m_rightGripperTask->admittance({{0, 0, 0}, {0.001, 0, 0}});
-        m_rightGripperTask->stiffness(Eigen::VectorXd(dimStiffness));
-        m_rightGripperTask->damping(Eigen::VectorXd(dimDamping));
+        m_rightGripperTask->admittance(m_admittanceCoefficients);
+        m_rightGripperTask->stiffness(m_dimStiffness);
+        m_rightGripperTask->damping(m_dimDamping);
     }
 
     if (m_phase == Phase::RaiseBox)
@@ -327,7 +343,27 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
                         updateCoMZ(ctl_);
                     }),
             mc_rtc::gui::NumberInput(
+                    "Left carry wrench robot",
+                    [this] { return m_leftAdmittanceWrenchTarget; },
+                    [this](double value) { m_leftAdmittanceWrenchTarget = value; }),
+            mc_rtc::gui::NumberInput(
+                    "Right carry wrench robot",
+                    [this] { return m_rightAdmittanceWrenchTarget; },
+                    [this](double value) { m_rightAdmittanceWrenchTarget = value; }),
+            mc_rtc::gui::NumberInput(
                     "Stiffness", [this] { return m_stiffness; }, [this](double value) { m_stiffness = value; }),
+            mc_rtc::gui::NumberInput(
+                    "admittanceStiffness",
+                    [this] { return m_admittanceStiffness; },
+                    [this](double value) { m_admittanceStiffness = value; }),
+            mc_rtc::gui::NumberInput(
+                    "admittanceDamping",
+                    [this] { return m_admittanceDamping; },
+                    [this](double value) { m_admittanceDamping = value; }),
+            mc_rtc::gui::NumberInput(
+                    "admittanceCoefficient",
+                    [this] { return m_admittanceCoefficient; },
+                    [this](double value) { m_admittanceCoefficient = value; }),
             mc_rtc::gui::NumberInput(
                     "Weight", [this] { return m_weight; }, [this](double value) { m_weight = value; }),
             mc_rtc::gui::ArrayInput(
@@ -354,15 +390,7 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::ArrayInput(
                     "Right carry position robot",
                     [this] { return m_rightCarryPositionRobot; },
-                    [this](const Eigen::Vector3d &value) { m_rightCarryPositionRobot = value; }),
-            mc_rtc::gui::ArrayInput(
-                    "Left carry wrench robot",
-                    [this] { return m_leftCarryWrench; },
-                    [this](const sva::ForceVecd &value) { m_leftCarryWrench = value; }),
-            mc_rtc::gui::ArrayInput(
-                    "Right carry wrench robot",
-                    [this] { return m_rightCarryWrench; },
-                    [this](const sva::ForceVecd &value) { m_rightCarryWrench = value; }));
+                    [this](const Eigen::Vector3d &value) { m_rightCarryPositionRobot = value; }));
 
     ctl.gui()->addElement(
             {"GMB", "Pickup"},
