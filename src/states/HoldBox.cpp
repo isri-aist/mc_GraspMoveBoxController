@@ -21,8 +21,6 @@ void HoldBox::configure(const mc_rtc::Configuration &config)
     config("gripperSurfaceRightGripper", m_gripperSurfaceRightGripper);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
-    config("leftCarryWrench", m_leftCarryWrench);
-    config("rightCarryWrench", m_rightCarryWrench);
     config("leftPositionRobot", m_leftPositionRobot);
     config("rightPositionRobot", m_rightPositionRobot);
     config("leftOrientationRobot", m_leftOrientationRobot);
@@ -50,25 +48,25 @@ void HoldBox::start(mc_control::fsm::Controller &ctl_)
 
     if (!(hasLeftContact && hasRightContact)) mc_rtc::log::error("Didn't find box contacts");
 
-    m_leftGripperTask = std::make_shared<mc_tasks::force::AdmittanceTask>(
-            m_gripperSurfaceLeftGripper, ctl.robots(), 0, m_stiffness, m_weight);
+    m_leftPositionRobot.y()  = m_boxHalfWidth;
+    m_rightPositionRobot.y() = -m_boxHalfWidth;
+
+    m_leftGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
+            m_gripperSurfaceLeftGripper, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
-    m_leftGripperTask->targetPose(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
+    m_leftGripperTask->set_ef_pose({m_leftOrientationRobot, m_leftPositionRobot});
     ctl.solver().addTask(m_leftGripperTask);
 
-    m_rightGripperTask = std::make_shared<mc_tasks::force::AdmittanceTask>(
-            m_gripperSurfaceRightGripper, ctl.robots(), 0, m_stiffness, m_weight);
+    m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
+            m_gripperSurfaceRightGripper, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
-    m_rightGripperTask->targetPose(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
+    m_rightGripperTask->set_ef_pose({m_rightOrientationRobot, m_rightPositionRobot});
     ctl.solver().addTask(m_rightGripperTask);
 
     m_boxHalfWidth = 0.5 *
             (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
              ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
                     .norm();
-
-    m_leftPositionRobot.y()  = m_boxHalfWidth;
-    m_rightPositionRobot.y() = -m_boxHalfWidth;
 
     addToGui(ctl_);
 }
@@ -86,21 +84,17 @@ bool HoldBox::run(mc_control::fsm::Controller &ctl_)
         ctl.datastore().call<void, const sva::PTransformd &>(setPosWCall, objectPosW);
     }
 
-    m_leftGripperTask->stiffness(m_stiffness);
-    m_leftGripperTask->weight(m_weight);
-    m_leftGripperTask->targetPose(
-            sva::PTransformd{m_leftOrientationRobot, m_leftPositionRobot} *
-            ctl.robot().frame(m_robotReferenceFrame).position());
-    m_leftGripperTask->targetWrench(m_leftCarryWrench);
+    m_leftGripperTask->orientationTask->stiffness(m_stiffness);
+    m_leftGripperTask->positionTask->stiffness(m_stiffness);
+    m_leftGripperTask->orientationTask->weight(m_weight);
+    m_leftGripperTask->positionTask->weight(m_weight);
+    m_leftGripperTask->set_ef_pose({m_leftOrientationRobot, m_leftPositionRobot});
 
-    m_rightGripperTask->stiffness(m_stiffness);
-    m_rightGripperTask->weight(m_weight);
-    m_rightGripperTask->stiffness(m_stiffness);
-    m_rightGripperTask->weight(m_weight);
-    m_rightGripperTask->targetPose(
-            sva::PTransformd{m_rightOrientationRobot, m_rightPositionRobot} *
-            ctl.robot().frame(m_robotReferenceFrame).position());
-    m_rightGripperTask->targetWrench(m_rightCarryWrench);
+    m_rightGripperTask->orientationTask->stiffness(m_stiffness);
+    m_rightGripperTask->positionTask->stiffness(m_stiffness);
+    m_rightGripperTask->orientationTask->weight(m_weight);
+    m_rightGripperTask->positionTask->weight(m_weight);
+    m_rightGripperTask->set_ef_pose({m_rightOrientationRobot, m_rightPositionRobot});
 
     // is meant to run parallel to a walking task which will end
     return true;
@@ -156,15 +150,7 @@ void HoldBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::ArrayInput(
                     "Right hold position robot",
                     [this] { return m_rightPositionRobot; },
-                    [this](const Eigen::Vector3d &value) { m_rightPositionRobot = value; }),
-            mc_rtc::gui::ArrayInput(
-                    "Left carry wrench robot",
-                    [this] { return m_leftCarryWrench; },
-                    [this](const sva::ForceVecd &value) { m_leftCarryWrench = value; }),
-            mc_rtc::gui::ArrayInput(
-                    "Right carry wrench robot",
-                    [this] { return m_rightCarryWrench; },
-                    [this](const sva::ForceVecd &value) { m_rightCarryWrench = value; }));
+                    [this](const Eigen::Vector3d &value) { m_rightPositionRobot = value; }));
 
     ctl.gui()->addElement(
             {"GMB", "Hold"},
