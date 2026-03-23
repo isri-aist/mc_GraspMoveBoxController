@@ -340,8 +340,8 @@ states:
     leftAdmittanceWrenchTarget: 30.0 # somehow needs to be 3x higher than right
     rightAdmittanceWrenchTarget: 10.0
     admittanceCoefficient: 1.0
-    completionEval: 0.05
-    completionSpeed: 2.0e-4
+    completionEval: 0.07
+    completionSpeed: 1.0e-3
     leftGripperContactOffset: -0.06
     rightGripperContactOffset: -0.1
     leftApproachOffsetRobot: [ 0.0, 0.1, -0.01 ]
@@ -407,8 +407,8 @@ states:
     stiffness: 5
     weight: 7000
     timeout: 3.0
-    completionEval: 0.05
-    completionSpeed: 2.0e-4
+    completionEval: 0.08
+    completionSpeed: 1.0e-3
     crouchOffset: 0.1
     leftApproachOffsetRobot: [ 0.0, 0.1, 0.05 ]
     rightApproachOffsetRobot: [ 0.0, -0.1, 0.05 ]
