@@ -1,15 +1,14 @@
 #include "DropoffBox.hpp"
 
+#include <BaselineWalkingController/CentroidalManager.h>
+#include <BaselineWalkingController/FootManager.h>
 #include <Eigen/Geometry>
 #include <mc_rtc/gui/ArrayLabel.h>
 #include <mc_rtc/gui/Checkbox.h>
 #include <mc_rtc/gui/Label.h>
 #include <mc_rtc/gui/NumberInput.h>
 #include <mc_tasks/CoMTask.h>
-
 #include "../DemoController.h"
-#include "BaselineWalkingController/CentroidalManager.h"
-#include "BaselineWalkingController/FootManager.h"
 #include "utils.h"
 
 void DropoffBox::configure(const mc_rtc::Configuration &config)
@@ -82,7 +81,7 @@ void DropoffBox::start(mc_control::fsm::Controller &ctl_)
     m_leftDropPositionRobot.y()  = m_boxHalfWidth;
     m_rightDropPositionRobot.y() = -m_boxHalfWidth;
 
-    addToGui(ctl_);
+    addToGui(ctl);
 }
 
 bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
@@ -110,124 +109,13 @@ bool DropoffBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
-    m_leftGraspOffsetRobot  = {0.0, std::abs(m_leftGripperContactOffset), 0.0};
-    m_leftGraspOffsetBox    = {0.0, 0.0, m_leftGripperContactOffset};
-    m_rightGraspOffsetRobot = {0.0, -std::abs(m_rightGripperContactOffset), 0.0};
-    m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
+    handlePhaseChange(ctl);
+    updateStateConfig(ctl);
 
-    m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
-    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
-
-    m_leftGripperTask->stiffness(m_stiffness);
-    m_leftGripperTask->weight(m_weight);
-
-    m_rightGripperTask->stiffness(m_stiffness);
-    m_rightGripperTask->weight(m_weight);
-
-    const bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
-            m_leftGripperTask->speed().norm() < m_completionSpeed &&
-            m_rightGripperTask->eval().norm() < m_completionEval &&
-            m_rightGripperTask->speed().norm() < m_completionSpeed;
-    bool goToNextPhase = m_phaseAdvanceRequested || (!m_manualPhaseChange && taskCompleted);
-
-    if (m_phase == Phase::None && (!m_manualPhaseChange || m_phaseAdvanceRequested))
+    if (m_phase == Phase::Finished)
     {
-        mc_rtc::log::info("Now in lower box phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
-
-        m_phaseAdvanceRequested = false;
-        goToNextPhase           = false;
-
-        m_phase = Phase::LowerBox;
-        updateCoMZ(ctl_);
-
-        // no return here because otherwise taskCompleted will be evaluated as true again,
-        // and we will skip LowerBox phase
-        // return false;
-    }
-
-    if (m_phase == Phase::LowerBox)
-    {
-        if (goToNextPhase)
-        {
-            mc_rtc::log::info("Now in drop box phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
-
-            m_phaseAdvanceRequested = false;
-            goToNextPhase           = false;
-
-            m_phase = Phase::DropBox;
-            updateCoMZ(ctl_);
-
-            if (m_contactAdded)
-            {
-                ctl.clearContacts();
-                m_contactAdded = false;
-            }
-
-            return false;
-        }
-
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_leftOrientationRobot, m_leftDropPositionRobot + m_leftGraspOffsetRobot});
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightOrientationRobot, m_rightDropPositionRobot + m_rightGraspOffsetRobot});
-    }
-
-    if (m_phase == Phase::DropBox)
-    {
-        if (goToNextPhase)
-        {
-            mc_rtc::log::info("Now in retreat phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
-
-            m_phaseAdvanceRequested = false;
-            goToNextPhase           = false;
-
-            m_phase = Phase::Retreat;
-            updateCoMZ(ctl_);
-
-            return false;
-        }
-
-        auto leftOffsetRotation  = sva::RotZ(-mc_rtc::constants::PI / 2);
-        auto rightOffsetRotation = sva::RotZ(mc_rtc::constants::PI / 2);
-
-        m_leftGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceLeftGripper,
-                {leftOffsetRotation * m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
-
-        m_rightGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceRightGripper,
-                {rightOffsetRotation * m_rightOrientationBox,
-                 (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
-    }
-
-    if (m_phase == Phase::Retreat)
-    {
-        if (goToNextPhase)
-        {
-            mc_rtc::log::info("End of retreat phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
-
-            // reset box position because it doesn't have physics and stays in mid air
-            // TODO: find a better fix
-            ctl.robot(m_objectName).posW(ctl.config()("robots")(m_objectName)("init_pos"));
-
-            output("OK");
-            return true;
-        }
-
-        m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_leftOrientationRobot,
-                 m_leftDropPositionRobot + m_leftGraspOffsetRobot + m_leftApproachOffsetRobot +
-                         Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
-        m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame),
-                {m_rightOrientationRobot,
-                 m_rightDropPositionRobot + m_rightGraspOffsetRobot + m_rightApproachOffsetRobot +
-                         Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
+        output("OK");
+        return true;
     }
 
     return false;
@@ -246,13 +134,136 @@ void DropoffBox::teardown(mc_control::fsm::Controller &ctl_)
         m_contactAdded = false;
     }
 
-    removeFromGui(ctl_);
+    removeFromGui(ctl);
 }
 
-void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
+void DropoffBox::handlePhaseChange(DemoController &ctl)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
+            m_leftGripperTask->speed().norm() < m_completionSpeed &&
+            m_rightGripperTask->eval().norm() < m_completionEval &&
+            m_rightGripperTask->speed().norm() < m_completionSpeed;
 
+    if (m_phase == Phase::Init) taskCompleted = true;
+
+    bool goToNextPhase = m_phaseAdvanceRequested || (!m_manualPhaseChange && taskCompleted);
+
+    if (!goToNextPhase) return;
+
+    std::string currentPhaseName;
+
+    switch (m_phase)
+    {
+        case Phase::Init:
+            m_phase          = Phase::LowerBox;
+            currentPhaseName = "LowerBox";
+            break;
+        case Phase::LowerBox:
+            if (m_contactAdded)
+            {
+                ctl.clearContacts();
+                m_contactAdded = false;
+            }
+            m_phase          = Phase::DropBox;
+            currentPhaseName = "DropBox";
+            break;
+        case Phase::DropBox:
+            m_phase          = Phase::Retreat;
+            currentPhaseName = "Retreat";
+            break;
+        case Phase::Retreat:
+            m_phase          = Phase::Finished;
+            currentPhaseName = "Finished";
+            break;
+        case Phase::Finished: break;
+    }
+
+    m_phaseAdvanceRequested    = false;
+    m_centroidManagerDidItsJob = false;
+
+    mc_rtc::log::info(
+            "Phase changed to {} (eval: {}, request: {})", currentPhaseName, taskCompleted, m_phaseAdvanceRequested);
+}
+
+void DropoffBox::updateStateConfig(DemoController &ctl)
+{
+    m_leftGraspOffsetRobot  = {0.0, std::abs(m_leftGripperContactOffset), 0.0};
+    m_leftGraspOffsetBox    = {0.0, 0.0, m_leftGripperContactOffset};
+    m_rightGraspOffsetRobot = {0.0, -std::abs(m_rightGripperContactOffset), 0.0};
+    m_rightGraspOffsetBox   = {0.0, 0.0, m_rightGripperContactOffset};
+
+    m_leftApproachOffsetBox  = BoxOffsetFromRobotOffset(m_leftApproachOffsetRobot, BoxNoLid, Left);
+    m_rightApproachOffsetBox = BoxOffsetFromRobotOffset(m_rightApproachOffsetRobot, BoxNoLid, Right);
+
+    m_leftGripperTask->stiffness(m_stiffness);
+    m_leftGripperTask->weight(m_weight);
+
+    m_rightGripperTask->stiffness(m_stiffness);
+    m_rightGripperTask->weight(m_weight);
+
+    switch (m_phase)
+    {
+        case (Phase::Init):
+        case (Phase::Finished): break;
+
+        case (Phase::LowerBox):
+        {
+            m_leftGripperTask->target(
+                    ctl.robot().frame(m_robotReferenceFrame),
+                    {m_leftOrientationRobot, m_leftDropPositionRobot + m_leftGraspOffsetRobot});
+            m_rightGripperTask->target(
+                    ctl.robot().frame(m_robotReferenceFrame),
+                    {m_rightOrientationRobot, m_rightDropPositionRobot + m_rightGraspOffsetRobot});
+
+            if (!m_centroidManagerDidItsJob)
+                m_centroidManagerDidItsJob = ctl.centroidalManager_->setRefComZ(
+                        ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1.0, m_crouchOffset * 30.0);
+
+            break;
+        }
+
+        case (Phase::DropBox):
+        {
+            auto leftOffsetRotation  = sva::RotZ(-mc_rtc::constants::PI / 2);
+            auto rightOffsetRotation = sva::RotZ(mc_rtc::constants::PI / 2);
+
+            m_leftGripperTask->targetSurface(
+                    ctl.robot(m_objectName).robotIndex(),
+                    m_objectSurfaceLeftGripper,
+                    {leftOffsetRotation * m_leftOrientationBox,
+                     (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
+
+            m_rightGripperTask->targetSurface(
+                    ctl.robot(m_objectName).robotIndex(),
+                    m_objectSurfaceRightGripper,
+                    {rightOffsetRotation * m_rightOrientationBox,
+                     (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
+            break;
+        }
+
+        case (Phase::Retreat):
+        {
+            m_leftGripperTask->target(
+                    ctl.robot().frame(m_robotReferenceFrame),
+                    {m_leftOrientationRobot,
+                     m_leftDropPositionRobot + m_leftGraspOffsetRobot + m_leftApproachOffsetRobot +
+                             Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
+            m_rightGripperTask->target(
+                    ctl.robot().frame(m_robotReferenceFrame),
+                    {m_rightOrientationRobot,
+                     m_rightDropPositionRobot + m_rightGraspOffsetRobot + m_rightApproachOffsetRobot +
+                             Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
+
+            if (!m_centroidManagerDidItsJob)
+                m_centroidManagerDidItsJob =
+                        ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1.0, m_crouchOffset * 30.0);
+            break;
+        }
+    }
+}
+
+void DropoffBox::addToGui(DemoController &ctl)
+{
     auto boolToString = [](bool value) { return value ? "True" : "False"; };
 
     ctl.gui()->addElement(
@@ -287,7 +298,7 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
                     {
                         switch (m_phase)
                         {
-                            case Phase::None: return std::string{"None"};
+                            case Phase::Init: return std::string{"None"};
                             case Phase::LowerBox: return std::string{"LowerBox"};
                             case Phase::DropBox: return std::string{"DropBox"};
                             case Phase::Retreat: return std::string{"Retreat"};
@@ -313,10 +324,10 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::NumberInput(
                     "Crouch offset",
                     [this] { return m_crouchOffset; },
-                    [this, &ctl_](double value)
+                    [this](double value)
                     {
-                        m_crouchOffset = value;
-                        updateCoMZ(ctl_);
+                        m_centroidManagerDidItsJob = false;
+                        m_crouchOffset             = value;
                     }),
             mc_rtc::gui::NumberInput(
                     "Stiffness", [this] { return m_stiffness; }, [this](double value) { m_stiffness = value; }),
@@ -375,35 +386,10 @@ void DropoffBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::ArrayLabel("Right orientation robot", [this] { return m_rightOrientationRobot; }));
 }
 
-void DropoffBox::removeFromGui(mc_control::fsm::Controller &ctl_)
+void DropoffBox::removeFromGui(DemoController &ctl)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
     ctl.gui()->removeCategory({"GMB", "Dropoff"});
 }
 
-void DropoffBox::updateCoMZ(mc_control::fsm::Controller &ctl_)
-{
-    auto &ctl = static_cast<DemoController &>(ctl_);
-
-    switch (m_phase)
-    {
-        case Phase::None:
-        case Phase::Retreat:
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1.0, m_crouchOffset * 30.0);
-            return;
-        }
-        case Phase::LowerBox:
-        case Phase::DropBox:
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1.0, m_crouchOffset * 30.0);
-            return;
-        }
-        default:
-        {
-            return;
-        }
-    }
-}
 
 EXPORT_SINGLE_STATE("DropoffBox", DropoffBox)
