@@ -1,9 +1,10 @@
 #include "PickupBox.hpp"
-#include "../DemoController.h"
-#include "utils.h"
 
 #include <BaselineWalkingController/CentroidalManager.h>
 #include <mc_tasks/CoMTask.h>
+#include "../DemoController.h"
+#include "utils.h"
+
 
 void PickupBox::configure(const mc_rtc::Configuration &config)
 {
@@ -81,9 +82,7 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
 
     m_crouchOffset = ctl.m_refCoMZ - ctl.robot(m_objectName).posW().translation().z() - 0.1;
-    // m_crouchOffset = std::min(m_crouchOffset, ctl.m_refCoMZ - 0.85); // fix for mujoco simulation
-
-    addToGui(ctl_);
+    addToGui(ctl);
 }
 
 bool PickupBox::run(mc_control::fsm::Controller &ctl_)
@@ -111,6 +110,91 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
+    handlePhaseChange(ctl);
+    updateStateConfig(ctl);
+
+    if (m_phase == Phase::Finished)
+    {
+        output("OK");
+        return true;
+    }
+
+    return false;
+}
+
+void PickupBox::teardown(mc_control::fsm::Controller &ctl_)
+{
+    auto &ctl = static_cast<DemoController &>(ctl_);
+
+    ctl.solver().removeTask(m_leftGripperTask);
+    ctl.solver().removeTask(m_rightGripperTask);
+
+    if (m_contactAdded && m_removeContactAtTeardown)
+    {
+        ctl.removeContact(m_leftContact);
+        ctl.removeContact(m_rightContact);
+        m_contactAdded = false;
+    }
+
+    removeFromGui(ctl);
+}
+
+void PickupBox::handlePhaseChange(DemoController &ctl)
+{
+    bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
+            m_leftGripperTask->speed().norm() < m_completionSpeed &&
+            m_rightGripperTask->eval().norm() < m_completionEval &&
+            m_rightGripperTask->speed().norm() < m_completionSpeed;
+
+    if (m_phase == Phase::Init) taskCompleted = true;
+
+    if (m_phase == Phase::GraspBox)
+        taskCompleted = m_leftGripperTask->measuredWrench().force().x() > m_leftCarryWrench.force().x() &&
+                m_rightGripperTask->measuredWrench().force().x() > m_rightCarryWrench.force().x();
+
+    bool goToNextPhase = m_phaseAdvanceRequested || (!m_manualPhaseChange && taskCompleted);
+
+    if (!goToNextPhase) return;
+
+    std::string currentPhaseName;
+
+    switch (m_phase)
+    {
+        case Phase::Init:
+            m_phase          = Phase::ApproachBox;
+            currentPhaseName = "ApproachBox";
+            break;
+        case Phase::ApproachBox:
+            m_phase          = Phase::GraspBox;
+            currentPhaseName = "GraspBox";
+            break;
+        case Phase::GraspBox:
+            m_leftGripperTask->targetWrench(sva::ForceVecd::Zero());
+            m_leftGripperTask->admittance(sva::ForceVecd::Zero());
+            m_rightGripperTask->targetWrench(sva::ForceVecd::Zero());
+            m_rightGripperTask->admittance(sva::ForceVecd::Zero());
+            ctl.addContact(m_leftContact);
+            ctl.addContact(m_rightContact);
+            m_contactAdded   = true;
+            m_phase          = Phase::RaiseBox;
+            currentPhaseName = "RaiseBox";
+            break;
+        case Phase::RaiseBox:
+            m_phase          = Phase::Finished;
+            currentPhaseName = "Finished";
+            break;
+        case Phase::Finished: break;
+    }
+
+    m_phaseAdvanceRequested    = false;
+    m_centroidManagerDidItsJob = false;
+
+    mc_rtc::log::info(
+            "Phase changed to {} (eval: {}, request: {})", currentPhaseName, taskCompleted, m_phaseAdvanceRequested);
+}
+
+void PickupBox::updateStateConfig(DemoController &ctl)
+{
     m_dimStiffness =
             Eigen::Vector6d(m_stiffness, m_stiffness, m_stiffness, m_admittanceStiffness, m_stiffness, m_stiffness);
     m_dimDamping = Eigen::Vector6d(6.3, 6.3, 6.3, m_admittanceDamping, 6.3, 6.3);
@@ -135,144 +219,73 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
     m_rightGripperTask->stiffness(m_stiffness);
     m_rightGripperTask->weight(m_weight);
 
-    bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
-            m_leftGripperTask->speed().norm() < m_completionSpeed &&
-            m_rightGripperTask->eval().norm() < m_completionEval &&
-            m_rightGripperTask->speed().norm() < m_completionSpeed;
-    if (m_phase == Phase::GraspBox)
-        taskCompleted = m_leftGripperTask->measuredWrench().force().x() > m_leftCarryWrench.force().x() &&
-                m_rightGripperTask->measuredWrench().force().x() > m_rightCarryWrench.force().x();
-
-    bool goToNextPhase = m_phaseAdvanceRequested || (!m_manualPhaseChange && taskCompleted);
-
-    if (m_phase == Phase::None && (!m_manualPhaseChange || m_phaseAdvanceRequested))
+    switch (m_phase)
     {
-        mc_rtc::log::info("Now in approach phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
-
-        m_phaseAdvanceRequested = false;
-        goToNextPhase           = false;
-
-        m_phase = Phase::ApproachBox;
-        updateCoMZ(ctl_);
-
-        return false;
-    }
-
-    if (m_phase == Phase::ApproachBox)
-    {
-        if (goToNextPhase)
+        case (Phase::Init):
+        case (Phase::Finished): break;
+        case (Phase::ApproachBox):
         {
-            mc_rtc::log::info("Now in grasping phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
+            m_leftGripperTask->targetSurface(
+                    ctl.robot(m_objectName).robotIndex(),
+                    m_objectSurfaceLeftGripper,
+                    {m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
 
-            m_phaseAdvanceRequested = false;
-            goToNextPhase           = false;
+            m_rightGripperTask->targetSurface(
+                    ctl.robot(m_objectName).robotIndex(),
+                    m_objectSurfaceRightGripper,
+                    {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
 
-            m_phase = Phase::GraspBox;
-            updateCoMZ(ctl_);
+            if (!m_centroidManagerDidItsJob)
+                m_centroidManagerDidItsJob = ctl.centroidalManager_->setRefComZ(
+                        ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1.0, m_crouchOffset * 30.0);
 
-            return false;
+            break;
         }
-
-        m_leftGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceLeftGripper,
-                {m_leftOrientationBox, (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()});
-
-        m_rightGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceRightGripper,
-                {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
-    }
-
-    if (m_phase == Phase::GraspBox)
-    {
-        if (goToNextPhase)
+        case (Phase::GraspBox):
         {
-            mc_rtc::log::info("Now in lift phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
+            m_leftGripperTask->targetSurface(
+                    ctl.robot(m_objectName).robotIndex(),
+                    m_objectSurfaceLeftGripper,
+                    {m_leftOrientationBox, m_leftGraspOffsetBox});
 
-            m_phaseAdvanceRequested = false;
-            goToNextPhase           = false;
+            m_rightGripperTask->targetSurface(
+                    ctl.robot(m_objectName).robotIndex(),
+                    m_objectSurfaceRightGripper,
+                    {m_rightOrientationBox, m_rightGraspOffsetBox});
 
-            m_leftGripperTask->targetWrench(sva::ForceVecd::Zero());
-            m_leftGripperTask->admittance(sva::ForceVecd::Zero());
-            m_rightGripperTask->targetWrench(sva::ForceVecd::Zero());
-            m_rightGripperTask->admittance(sva::ForceVecd::Zero());
+            m_leftGripperTask->targetWrench(m_leftCarryWrench);
+            m_leftGripperTask->admittance(m_admittanceCoefficients);
+            m_leftGripperTask->stiffness(m_dimStiffness);
+            m_leftGripperTask->damping(m_dimDamping);
 
-            ctl.addContact(m_leftContact);
-            ctl.addContact(m_rightContact);
+            m_rightGripperTask->targetWrench(m_rightCarryWrench);
+            m_rightGripperTask->admittance(m_admittanceCoefficients);
+            m_rightGripperTask->stiffness(m_dimStiffness);
+            m_rightGripperTask->damping(m_dimDamping);
 
-            m_contactAdded = true;
-
-            m_phase = Phase::RaiseBox;
-            updateCoMZ(ctl_);
-
-            return false;
+            break;
         }
-
-        m_leftGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceLeftGripper,
-                {m_leftOrientationBox, m_leftGraspOffsetBox});
-
-        m_rightGripperTask->targetSurface(
-                ctl.robot(m_objectName).robotIndex(),
-                m_objectSurfaceRightGripper,
-                {m_rightOrientationBox, m_rightGraspOffsetBox});
-
-        m_leftGripperTask->targetWrench(m_leftCarryWrench);
-        m_leftGripperTask->admittance(m_admittanceCoefficients);
-        m_leftGripperTask->stiffness(m_dimStiffness);
-        m_leftGripperTask->damping(m_dimDamping);
-
-        m_rightGripperTask->targetWrench(m_rightCarryWrench);
-        m_rightGripperTask->admittance(m_admittanceCoefficients);
-        m_rightGripperTask->stiffness(m_dimStiffness);
-        m_rightGripperTask->damping(m_dimDamping);
-    }
-
-    if (m_phase == Phase::RaiseBox)
-    {
-        if (goToNextPhase)
+        case (Phase::RaiseBox):
         {
-            mc_rtc::log::info("End of raise phase (eval: {}, request: {})", taskCompleted, m_phaseAdvanceRequested);
+            m_leftGripperTask->targetPose(
+                    sva::PTransformd{m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot} *
+                    ctl.robot().frame(m_robotReferenceFrame).position());
 
-            output("OK");
-            return true;
+            m_rightGripperTask->targetPose(
+                    sva::PTransformd{m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot} *
+                    ctl.robot().frame(m_robotReferenceFrame).position());
+
+            if (!m_centroidManagerDidItsJob)
+                m_centroidManagerDidItsJob =
+                        ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1.0, m_crouchOffset * 30.0);
+
+            break;
         }
-
-        m_leftGripperTask->targetPose(
-                sva::PTransformd{m_leftOrientationRobot, m_leftCarryPositionRobot + m_leftGraspOffsetRobot} *
-                ctl.robot().frame(m_robotReferenceFrame).position());
-
-        m_rightGripperTask->targetPose(
-                sva::PTransformd{m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot} *
-                ctl.robot().frame(m_robotReferenceFrame).position());
     }
-
-    return false;
 }
 
-void PickupBox::teardown(mc_control::fsm::Controller &ctl_)
+void PickupBox::addToGui(DemoController &ctl)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
-
-    ctl.solver().removeTask(m_leftGripperTask);
-    ctl.solver().removeTask(m_rightGripperTask);
-
-    if (m_contactAdded && m_removeContactAtTeardown)
-    {
-        ctl.removeContact(m_leftContact);
-        ctl.removeContact(m_rightContact);
-        m_contactAdded = false;
-    }
-
-    removeFromGui(ctl_);
-}
-
-void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
-{
-    auto &ctl = static_cast<DemoController &>(ctl_);
-
     auto boolToString = [](bool value) { return value ? "True" : "False"; };
 
     ctl.gui()->addElement(
@@ -318,7 +331,7 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
                     {
                         switch (m_phase)
                         {
-                            case Phase::None: return std::string{"None"};
+                            case Phase::Init: return std::string{"Init"};
                             case Phase::ApproachBox: return std::string{"ApproachBox"};
                             case Phase::GraspBox: return std::string{"GraspBox"};
                             case Phase::RaiseBox: return std::string{"RaiseBox"};
@@ -343,10 +356,10 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::NumberInput(
                     "Crouch offset",
                     [this] { return m_crouchOffset; },
-                    [this, &ctl_](double value)
+                    [this](double value)
                     {
-                        m_crouchOffset = value;
-                        updateCoMZ(ctl_);
+                        m_centroidManagerDidItsJob = false;
+                        m_crouchOffset             = value;
                     }),
             mc_rtc::gui::NumberInput(
                     "Left carry wrench robot",
@@ -425,35 +438,9 @@ void PickupBox::addToGui(mc_control::fsm::Controller &ctl_)
             mc_rtc::gui::ArrayLabel("Right orientation robot", [this] { return m_rightOrientationRobot; }));
 }
 
-void PickupBox::removeFromGui(mc_control::fsm::Controller &ctl_)
+void PickupBox::removeFromGui(DemoController &ctl)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
     ctl.gui()->removeCategory({"GMB", "Pickup"});
-}
-
-void PickupBox::updateCoMZ(mc_control::fsm::Controller &ctl_)
-{
-    auto &ctl = static_cast<DemoController &>(ctl_);
-
-    switch (m_phase)
-    {
-        case Phase::None:
-        case Phase::RaiseBox:
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1.0, m_crouchOffset * 30.0);
-            return;
-        }
-        case Phase::ApproachBox:
-        case Phase::GraspBox:
-        {
-            ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ - m_crouchOffset, ctl.t() + 1.0, m_crouchOffset * 30.0);
-            return;
-        }
-        default:
-        {
-            return;
-        }
-    }
 }
 
 EXPORT_SINGLE_STATE("PickupBox", PickupBox)

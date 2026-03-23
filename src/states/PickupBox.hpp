@@ -1,11 +1,10 @@
 #pragma once
 
 #include <Eigen/Core>
+#include <mc_control/Contact.h>
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/AdmittanceTask.h>
-#include <mc_tasks/TransformTask.h>
-
-#include "mc_control/Contact.h"
+#include "../DemoController.h"
 
 struct PickupBox : mc_control::fsm::State
 {
@@ -18,10 +17,11 @@ struct PickupBox : mc_control::fsm::State
     private:
         enum Phase
         {
-            None,
+            Init,
             ApproachBox,
             GraspBox,
-            RaiseBox
+            RaiseBox,
+            Finished
         };
 
         std::shared_ptr<mc_tasks::force::AdmittanceTask> m_leftGripperTask;
@@ -34,7 +34,7 @@ struct PickupBox : mc_control::fsm::State
         std::string m_gripperSurfaceLeftGripper  = "LeftHandSupportPlate";
         std::string m_gripperSurfaceRightGripper = "RightHandSupportPlate";
 
-        Phase m_phase = Phase::None;
+        Phase m_phase = Phase::Init;
 
         double m_stiffness                   = 2.0;
         double m_weight                      = 2000.0;
@@ -50,10 +50,11 @@ struct PickupBox : mc_control::fsm::State
         double m_leftGripperContactOffset    = 0.0;
         double m_rightGripperContactOffset   = 0.0;
 
-        bool m_contactAdded            = false;
-        bool m_removeContactAtTeardown = false;
-        bool m_manualPhaseChange       = true;
-        bool m_phaseAdvanceRequested   = false;
+        bool m_contactAdded             = false;
+        bool m_removeContactAtTeardown  = false;
+        bool m_manualPhaseChange        = true;
+        bool m_phaseAdvanceRequested    = false;
+        bool m_centroidManagerDidItsJob = false;
 
         mc_control::Contact m_leftContact{};
         mc_control::Contact m_rightContact{};
@@ -87,7 +88,8 @@ struct PickupBox : mc_control::fsm::State
         Eigen::Quaterniond m_leftOrientationRobot;
         Eigen::Quaterniond m_rightOrientationRobot;
 
-        void addToGui(mc_control::fsm::Controller &);
-        void removeFromGui(mc_control::fsm::Controller &);
-        void updateCoMZ(mc_control::fsm::Controller &);
+        void handlePhaseChange(DemoController &);
+        void updateStateConfig(DemoController &);
+        void addToGui(DemoController &);
+        void removeFromGui(DemoController &);
 };
