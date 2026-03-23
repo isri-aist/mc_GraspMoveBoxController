@@ -26,8 +26,8 @@ struct MoveHands : mc_control::fsm::State
         double m_stiffness = 2.0;
         double m_weight    = 1000.0;
 
-        bool m_started              = false;
-        bool m_autoStart            = false;
+        bool m_started   = false;
+        bool m_autoStart = false;
 
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_leftGripperTask;
         std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_rightGripperTask;
