@@ -164,6 +164,10 @@ void DropoffBox::handlePhaseChange(DemoController &ctl)
                 ctl.clearContacts();
                 m_contactAdded = false;
             }
+            // reset box position because it doesn't have physics and stays in mid air
+            // TODO: find a better fix
+            ctl.robot(m_objectName).posW(ctl.config()("robots")(m_objectName)("init_pos"));
+
             m_phase          = Phase::DropBox;
             currentPhaseName = "DropBox";
             break;
