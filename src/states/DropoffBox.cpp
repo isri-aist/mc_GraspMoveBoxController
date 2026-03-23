@@ -73,10 +73,11 @@ void DropoffBox::start(mc_control::fsm::Controller &ctl_)
     m_rightGripperTask->target(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
     ctl.solver().addTask(m_rightGripperTask);
 
-    m_boxHalfWidth = 0.5 *
-            (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
-             ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
-                    .norm();
+    const double handDistance = (ctl.robot().frame(m_gripperSurfaceLeftGripper).position().translation() -
+                                 ctl.robot().frame(m_gripperSurfaceRightGripper).position().translation())
+                                        .norm();
+
+    m_boxHalfWidth = 0.5 * handDistance;
 
     m_leftDropPositionRobot.y()  = m_boxHalfWidth;
     m_rightDropPositionRobot.y() = -m_boxHalfWidth;
@@ -214,10 +215,10 @@ void DropoffBox::updateStateConfig(DemoController &ctl)
         {
             m_leftGripperTask->target(
                     ctl.robot().frame(m_robotReferenceFrame),
-                    {m_leftOrientationRobot, m_leftDropPositionRobot + m_leftGraspOffsetRobot});
+                    {m_leftOrientationRobot, m_leftDropPositionRobot});
             m_rightGripperTask->target(
                     ctl.robot().frame(m_robotReferenceFrame),
-                    {m_rightOrientationRobot, m_rightDropPositionRobot + m_rightGraspOffsetRobot});
+                    {m_rightOrientationRobot, m_rightDropPositionRobot});
 
             if (!m_centroidManagerDidItsJob)
                 m_centroidManagerDidItsJob = ctl.centroidalManager_->setRefComZ(
