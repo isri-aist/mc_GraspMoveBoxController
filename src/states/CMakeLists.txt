@@ -11,6 +11,8 @@ set_target_properties(GoTo PROPERTIES
         INSTALL_RPATH "${BWC_STATES_LIBRARIES}"
 )
 
+add_fsm_state(LookAtBox LookAtBox.cpp LookAtBox.hpp)
+
 add_fsm_state(MoveHands MoveHands.cpp MoveHands.hpp)
 add_fsm_state(HoldBox HoldBox.cpp HoldBox.hpp)
 add_fsm_state(ShoulderOrientation ShoulderOrientation.cpp ShoulderOrientation.hpp)

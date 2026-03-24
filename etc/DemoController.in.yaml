@@ -353,6 +353,11 @@ states:
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
 
+  LookAtBox0:
+    base: LookAtBox
+    objectName: zbox0
+    cameraControlFrame: azure_color_frame
+
   PickupBox0WithShoulders:
     base: Parallel
     states: [ ShoulderPose, PickupBox0 ]
