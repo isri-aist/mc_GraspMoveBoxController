@@ -189,8 +189,14 @@ void PickupBox::handlePhaseChange(DemoController &ctl)
     m_phaseAdvanceRequested    = false;
     m_centroidManagerDidItsJob = false;
 
+    const char *statusColor = taskCompleted ? "\x1b[30;42m" : "\x1b[37;41m";
+
     mc_rtc::log::info(
-            "Phase changed to {} (eval: {}, request: {})", currentPhaseName, taskCompleted, m_phaseAdvanceRequested);
+            "Phase changed to {} ({}eval: {}\x1b[0m, request: {})",
+            currentPhaseName,
+            statusColor,
+            taskCompleted,
+            m_phaseAdvanceRequested);
 }
 
 void PickupBox::updateStateConfig(DemoController &ctl)
