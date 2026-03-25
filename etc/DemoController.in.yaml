@@ -415,8 +415,8 @@ states:
     completionEval: 0.08
     completionSpeed: 1.0e-3
     crouchOffset: 0.1
-    leftApproachOffsetRobot: [ 0.0, 0.1, 0.05 ]
-    rightApproachOffsetRobot: [ 0.0, -0.1, 0.05 ]
+    leftApproachOffsetRobot: [ 0.0, 0.03, 0.1 ]
+    rightApproachOffsetRobot: [ 0.0, -0.03, 0.1 ]
     leftGripperContactOffset: 0.06
     rightGripperContactOffset: 0.1
     leftDropPositionRobot: [ 0.4, 0.0, -0.1 ] # y value is automatically set with box width

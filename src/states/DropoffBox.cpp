@@ -254,12 +254,12 @@ void DropoffBox::updateStateConfig(DemoController &ctl)
         {
             m_leftGripperTask->target(
                     ctl.robot().frame(m_robotReferenceFrame),
-                    {m_leftOrientationRobot,
+                    {ctl.robot().frame(m_gripperSurfaceLeftGripper).position().rotation(),
                      m_leftDropPositionRobot + m_leftGraspOffsetRobot + m_leftApproachOffsetRobot +
                              Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
             m_rightGripperTask->target(
                     ctl.robot().frame(m_robotReferenceFrame),
-                    {m_rightOrientationRobot,
+                    {ctl.robot().frame(m_gripperSurfaceRightGripper).position().rotation(),
                      m_rightDropPositionRobot + m_rightGraspOffsetRobot + m_rightApproachOffsetRobot +
                              Eigen::Vector3d{0.0, 0.0, m_crouchOffset}});
 
