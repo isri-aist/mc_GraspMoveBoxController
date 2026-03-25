@@ -342,14 +342,14 @@ states:
     admittanceCoefficient: 1.0
     completionEval: 0.07
     completionSpeed: 1.0e-3
-    leftGripperContactOffset: -0.06
-    rightGripperContactOffset: -0.1
+    leftGripperContactOffset: 0.06
+    rightGripperContactOffset: 0.1
     leftApproachOffsetRobot: [ 0.0, 0.1, -0.01 ]
     rightApproachOffsetRobot: [ 0.0, -0.1, -0.01 ]
     leftCarryPositionRobot: [ 0.3, 0.0, -0. ] # y value is automatically set with box width
     rightCarryPositionRobot: [ 0.3, 0.0, -0. ]
-    leftOrientationBox: [ -0.5, -0.5,  0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
-    rightOrientationBox: [ 0.5, -0.5, -0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
+    leftOrientationBox: [ 0.5, 0.5, 0.5, 0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
+    rightOrientationBox: [ -0.5,  0.5, -0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
 
@@ -417,14 +417,14 @@ states:
     crouchOffset: 0.1
     leftApproachOffsetRobot: [ 0.0, 0.1, 0.05 ]
     rightApproachOffsetRobot: [ 0.0, -0.1, 0.05 ]
-    leftGripperContactOffset: -0.06
-    rightGripperContactOffset: -0.1
+    leftGripperContactOffset: 0.06
+    rightGripperContactOffset: 0.1
     leftDropPositionRobot: [ 0.4, 0.0, -0.1 ] # y value is automatically set with box width
     rightDropPositionRobot: [ 0.4, 0.0, -0.1 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
     rightOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
-    leftOrientationBox: [ -0.5, -0.5,  0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
-    rightOrientationBox: [ 0.5, -0.5, -0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
+    leftOrientationBox: [ 0.5, 0.5, 0.5, 0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
+    rightOrientationBox: [ -0.5,  0.5, -0.5,  0.5 ] # [ 0.70710678, 0., 0.70710678, 0. ]
 
   DropoffBox0WithShoulders:
     base: Parallel

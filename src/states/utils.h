@@ -50,8 +50,8 @@ inline Eigen::Vector3d BoxOffsetFromRobotOffset(Eigen::Vector3d &robotOffset, Bo
         }
         case BoxNoLid:
         {
-            if (boxSide == Left) return {robotOffset.z(), -robotOffset.x(), -robotOffset.y()};
-            if (boxSide == Right) return {robotOffset.z(), robotOffset.x(), robotOffset.y()};
+            if (boxSide == Left) return {-robotOffset.z(), -robotOffset.x(), robotOffset.y()};
+            if (boxSide == Right) return {-robotOffset.z(), robotOffset.x(), -robotOffset.y()};
         }
     }
 
