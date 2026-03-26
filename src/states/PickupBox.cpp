@@ -5,38 +5,67 @@
 #include "../DemoController.h"
 #include "utils.h"
 
-
-void PickupBox::configure(const mc_rtc::Configuration &config)
+void PickupBox::configure(const mc_rtc::Configuration & config)
 {
-    mc_rtc::log::info("PickupBox:\n{}", config.dump(true, true));
+    m_config.load(config);
 
-    config("robotReferenceFrame", m_robotReferenceFrame);
-    config("objectName", m_objectName);
-    config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
-    config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
-    config("gripperSurfaceLeftGripper", m_gripperSurfaceLeftGripper);
-    config("gripperSurfaceRightGripper", m_gripperSurfaceRightGripper);
-    config("stiffness", m_stiffness);
-    config("weight", m_weight);
-    config("admittanceStiffness", m_admittanceStiffness);
-    config("admittanceDamping", m_admittanceDamping);
-    config("leftAdmittanceWrenchTarget", m_leftAdmittanceWrenchTarget);
-    config("rightAdmittanceWrenchTarget", m_rightAdmittanceWrenchTarget);
-    config("admittanceCoefficient", m_admittanceCoefficient);
-    config("completionEval", m_completionEval);
-    config("completionSpeed", m_completionSpeed);
-    config("removeContactsAtTeardown", m_removeContactAtTeardown);
-    config("manualPhaseChange", m_manualPhaseChange);
-    config("leftGripperContactOffset", m_leftGripperContactOffset);
-    config("rightGripperContactOffset", m_rightGripperContactOffset);
-    config("leftApproachOffsetRobot", m_leftApproachOffsetRobot);
-    config("rightApproachOffsetRobot", m_rightApproachOffsetRobot);
-    config("leftCarryPositionRobot", m_leftCarryPositionRobot);
-    config("rightCarryPositionRobot", m_rightCarryPositionRobot);
-    config("leftOrientationBox", m_leftOrientationBox);
-    config("rightOrientationBox", m_rightOrientationBox);
-    config("leftOrientationRobot", m_leftOrientationRobot);
-    config("rightOrientationRobot", m_rightOrientationRobot);
+    mc_rtc::log::info("PickupBox:\n{}", m_config.dump(true, true));
+
+    if (
+        !m_config.has("objectName")
+        || !m_config.has("objectSurfaceLeftGripper")
+        || !m_config.has("objectSurfaceRightGripper")
+        || !m_config.has("leftApproachOffsetRobot")
+        || !m_config.has("rightApproachOffsetRobot")
+        || !m_config.has("leftCarryPositionRobot")
+        || !m_config.has("rightCarryPositionRobot")
+        || !m_config.has("leftOrientationBox")
+        || !m_config.has("rightOrientationBox")
+        || !m_config.has("leftOrientationRobot")
+        || !m_config.has("rightOrientationRobot")
+    )
+        mc_rtc::log::error_and_throw("Configuration is missing fields");
+
+    m_robotReferenceFrame        = m_config("robotReferenceFrame", std::string("CHEST_Y_LINK"));
+    m_gripperSurfaceLeftGripper  = m_config("gripperSurfaceLeftGripper", std::string("LeftHandSupportPlate"));
+    m_gripperSurfaceRightGripper = m_config("gripperSurfaceRightGripper", std::string("RightHandSupportPlate"));
+
+    m_config("objectName", m_objectName);
+    m_config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
+    m_config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
+
+    m_phase = Phase::Init;
+
+    m_stiffness                   = m_config("stiffness", 2.0);
+    m_weight                      = m_config("weight", 2000.0);
+    m_admittanceStiffness         = m_config("admittanceStiffness", 1.0);
+    m_admittanceDamping           = m_config("admittanceDamping", 300.0);
+    m_leftAdmittanceWrenchTarget  = m_config("leftAdmittanceWrenchTarget", 10.0);
+    m_rightAdmittanceWrenchTarget = m_config("rightAdmittanceWrenchTarget", 10.0);
+    m_admittanceCoefficient       = m_config("admittanceCoefficient", 0.001);
+    m_completionEval              = m_config("completionEval", 0.05);
+    m_completionSpeed             = m_config("completionSpeed", 1e-3);
+    m_leftGripperContactOffset    = m_config("leftGripperContactOffset", 0.0);
+    m_rightGripperContactOffset   = m_config("rightGripperContactOffset", 0.0);
+
+    m_boxHalfWidth = 0.0;
+    m_crouchOffset = 0.0;
+
+    m_removeContactAtTeardown = m_config("removeContactsAtTeardown", false);
+    m_manualPhaseChange       = m_config("manualPhaseChange", true);
+
+    m_contactAdded             = false;
+    m_phaseAdvanceRequested    = false;
+    m_centroidManagerDidItsJob = false;
+
+    m_config("leftApproachOffsetRobot", m_leftApproachOffsetRobot);
+    m_config("rightApproachOffsetRobot", m_rightApproachOffsetRobot);
+    m_config("leftCarryPositionRobot", m_leftCarryPositionRobot);
+    m_config("rightCarryPositionRobot", m_rightCarryPositionRobot);
+    m_config("leftOrientationBox", m_leftOrientationBox);
+    m_config("rightOrientationBox", m_rightOrientationBox);
+    m_config("leftOrientationRobot", m_leftOrientationRobot);
+    m_config("rightOrientationRobot", m_rightOrientationRobot);
 }
 
 void PickupBox::start(mc_control::fsm::Controller &ctl_)

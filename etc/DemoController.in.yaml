@@ -262,6 +262,8 @@ states:
     base: MoveHands
     leftHandTargetPositionRobot: [ 0.1, 0.3, 0. ]
     rightHandTargetPositionRobot: [ 0.1, -0.3, 0. ]
+    leftHandTargetOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
+    rightHandTargetOrientationRobot: [ 0.5, -0.5, 0.5, 0.5 ]
     weight: 5000
     stiffness: 5
 

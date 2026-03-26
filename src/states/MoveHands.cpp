@@ -7,24 +7,37 @@
 #include <mc_rtc/gui/Label.h>
 #include <mc_rtc/gui/NumberInput.h>
 
-void MoveHands::configure(const mc_rtc::Configuration &config)
+void MoveHands::configure(const mc_rtc::Configuration & config)
 {
-    mc_rtc::log::info("MoveHands:\n{}", config.dump(true, true));
+    m_config.load(config);
 
-    // if (!(config.has("leftHandTargetPositionRobot") && config.has("rightHandTargetPositionRobot")))
-    //     mc_rtc::log::error_and_throw("Missing required config fields");
+    mc_rtc::log::info("MoveHands:\n{}", m_config.dump(true, true));
 
-    config("leftHandTargetPositionRobot", m_leftHandTargetPositionRobot);
-    config("rightHandTargetPositionRobot", m_rightHandTargetPositionRobot);
+    if (
+        !m_config.has("leftHandTargetPositionRobot")
+        || !m_config.has("rightHandTargetPositionRobot")
+        || !m_config.has("leftHandTargetOrientationRobot")
+        || !m_config.has("rightHandTargetOrientationRobot")
+    )
+        mc_rtc::log::error_and_throw("Configuration is missing fields");
 
-    config("stiffness", m_stiffness);
-    config("weight", m_weight);
-    config("robotReferenceFrame", m_robotReferenceFrame);
-    config("leftHandFrame", m_leftHandFrame);
-    config("rightHandFrame", m_rightHandFrame);
-    config("autoStart", m_autoStart);
+    // assume RHPS1
+    m_robotReferenceFrame = m_config("robotReferenceFrame", std::string("CHEST_Y_LINK"));
+    m_leftHandFrame       = m_config("leftHandFrame", std::string("LeftHandSupportPlate"));
+    m_rightHandFrame      = m_config("rightHandFrame", std::string("RightHandSupportPlate"));
+
+    m_stiffness = m_config("stiffness", 2.0);
+    m_weight    = m_config("weight", 1000.0);
+
+    m_autoStart = m_config("autoStart", false);
 
     m_started = m_autoStart;
+
+    m_config("leftHandTargetPositionRobot", m_leftHandTargetPositionRobot);
+    m_config("rightHandTargetPositionRobot", m_rightHandTargetPositionRobot);
+
+    m_config("leftHandTargetOrientationRobot", m_leftHandTargetOrientationRobot);
+    m_config("rightHandTargetOrientationRobot", m_rightHandTargetOrientationRobot);
 }
 
 void MoveHands::start(mc_control::fsm::Controller &ctl_)

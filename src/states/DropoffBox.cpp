@@ -11,33 +11,62 @@
 #include "../DemoController.h"
 #include "utils.h"
 
-void DropoffBox::configure(const mc_rtc::Configuration &config)
+void DropoffBox::configure(const mc_rtc::Configuration & config)
 {
-    mc_rtc::log::info("DropoffBox:\n{}", config.dump(true, true));
+    m_config.load(config);
 
-    config("robotReferenceFrame", m_robotReferenceFrame);
-    config("objectName", m_objectName);
-    config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
-    config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
-    config("stiffness", m_stiffness);
-    config("weight", m_weight);
-    config("completionEval", m_completionEval);
-    config("completionSpeed", m_completionSpeed);
-    config("crouchOffset", m_crouchOffset);
-    config("removeContactsAtTeardown", m_removeContactAtTeardown);
-    config("manualPhaseChange", m_manualPhaseChange);
-    config("leftGripperContactOffset", m_leftGripperContactOffset);
-    config("rightGripperContactOffset", m_rightGripperContactOffset);
-    config("leftApproachOffsetRobot", m_leftApproachOffsetRobot);
-    config("rightApproachOffsetRobot", m_rightApproachOffsetRobot);
-    config("leftDropPositionRobot", m_leftDropPositionRobot);
-    config("rightDropPositionRobot", m_rightDropPositionRobot);
-    config("leftOrientationBox", m_leftOrientationBox);
-    config("rightOrientationBox", m_rightOrientationBox);
-    config("leftOrientationRobot", m_leftOrientationRobot);
-    config("rightOrientationRobot", m_rightOrientationRobot);
+    mc_rtc::log::info("DropoffBox:\n{}", m_config.dump(true, true));
 
-    m_phaseAdvanceRequested = false;
+    if (
+        !m_config.has("objectName")
+        || !m_config.has("objectSurfaceLeftGripper")
+        || !m_config.has("objectSurfaceRightGripper")
+        || !m_config.has("leftDropPositionRobot")
+        || !m_config.has("rightDropPositionRobot")
+        || !m_config.has("leftOrientationBox")
+        || !m_config.has("rightOrientationBox")
+        || !m_config.has("leftOrientationRobot")
+        || !m_config.has("rightOrientationRobot")
+    )
+        mc_rtc::log::error_and_throw("Configuration is missing fields");
+
+    m_robotReferenceFrame        = m_config("robotReferenceFrame", std::string("CHEST_Y_LINK"));
+    m_gripperSurfaceLeftGripper  = m_config("gripperSurfaceLeftGripper", std::string("LeftHandSupportPlate"));
+    m_gripperSurfaceRightGripper = m_config("gripperSurfaceRightGripper", std::string("RightHandSupportPlate"));
+
+    // assume RHPS1
+    m_config("objectName", m_objectName);
+    m_config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
+    m_config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
+
+    m_phase = Phase::Init;
+
+    m_stiffness                 = m_config("stiffness", 2.0);
+    m_weight                    = m_config("weight", 2000.0);
+    m_completionEval            = m_config("completionEval", 0.05);
+    m_completionSpeed           = m_config("completionSpeed", 1e-3);
+    m_crouchOffset              = m_config("crouchOffset", 0.05);
+    m_leftGripperContactOffset  = m_config("leftGripperContactOffset", 0.0);
+    m_rightGripperContactOffset = m_config("rightGripperContactOffset", 0.0);
+
+    m_boxHalfWidth = 0.0;
+
+    m_contactAdded             = false;
+    m_phaseAdvanceRequested    = false;
+    m_centroidManagerDidItsJob = false;
+
+    m_removeContactAtTeardown = m_config("removeContactsAtTeardown", true);
+    m_manualPhaseChange       = m_config("manualPhaseChange", true);
+
+    m_leftApproachOffsetRobot  = m_config("leftApproachOffsetRobot", Eigen::Vector3d::Zero().eval());
+    m_rightApproachOffsetRobot = m_config("rightApproachOffsetRobot", Eigen::Vector3d::Zero().eval());
+
+    m_config("leftDropPositionRobot", m_leftDropPositionRobot);
+    m_config("rightDropPositionRobot", m_rightDropPositionRobot);
+    m_config("leftOrientationBox", m_leftOrientationBox);
+    m_config("rightOrientationBox", m_rightOrientationBox);
+    m_config("leftOrientationRobot", m_leftOrientationRobot);
+    m_config("rightOrientationRobot", m_rightOrientationRobot);
 }
 
 void DropoffBox::start(mc_control::fsm::Controller &ctl_)

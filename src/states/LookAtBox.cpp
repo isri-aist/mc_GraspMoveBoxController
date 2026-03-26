@@ -2,6 +2,7 @@
 
 #include <SpaceVecAlg/SpaceVecAlg>
 #include "../DemoController.h"
+#include "utils.h"
 
 sva::PTransformd computeBoxInCam(const sva::PTransformd &CamInWorld, const sva::PTransformd &BoxInWorld)
 {
@@ -9,12 +10,26 @@ sva::PTransformd computeBoxInCam(const sva::PTransformd &CamInWorld, const sva::
     return pose;
 }
 
-void LookAtBox::configure(const mc_rtc::Configuration &config)
+void LookAtBox::configure(const mc_rtc::Configuration & config)
 {
-    config("stiffness", m_stiffness);
-    config("weight", m_weight);
-    config("objectName", m_objectName);
-    config("cameraControlFrame", m_cameraControlFrame);
+    m_config.load(config);
+
+    mc_rtc::log::info("LookAtBox:\n{}", m_config.dump(true, true));
+
+    if (
+        !m_config.has("objectName")
+        || !m_config.has("cameraControlFrame")
+    )
+        mc_rtc::log::error_and_throw("Configuration is missing fields");
+
+    m_config("objectName", m_objectName);
+    m_config("cameraControlFrame", m_cameraControlFrame);
+
+    m_stiffness = m_config("stiffness", 2.0);
+    m_weight    = m_config("weight", 500.0);
+
+    // assume RHPS1
+    m_activeJoints = m_config("activeJoints", NeckJoints);
 }
 
 void LookAtBox::start(mc_control::fsm::Controller &ctl_)

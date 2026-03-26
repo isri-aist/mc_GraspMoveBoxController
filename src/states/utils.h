@@ -3,6 +3,11 @@
 #include <string>
 #include <vector>
 
+const std::vector<std::string> NeckJoints = {
+        "HEAD_Y",
+        "HEAD_P",
+};
+
 const std::vector<std::string> LeftArmJoints = {
         "L_SHOULDER_P",
         "L_SHOULDER_R",

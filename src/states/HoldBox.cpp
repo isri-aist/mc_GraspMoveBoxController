@@ -9,22 +9,41 @@
 #include "../DemoController.h"
 #include "./utils.h"
 
-void HoldBox::configure(const mc_rtc::Configuration &config)
+void HoldBox::configure(const mc_rtc::Configuration & config)
 {
-    mc_rtc::log::info("HoldBox:\n{}", config.dump(true, true));
+    m_config.load(config);
 
-    config("robotReferenceFrame", m_robotReferenceFrame);
-    config("objectName", m_objectName);
-    config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
-    config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
-    config("gripperSurfaceLeftGripper", m_gripperSurfaceLeftGripper);
-    config("gripperSurfaceRightGripper", m_gripperSurfaceRightGripper);
-    config("stiffness", m_stiffness);
-    config("weight", m_weight);
-    config("leftPositionRobot", m_leftPositionRobot);
-    config("rightPositionRobot", m_rightPositionRobot);
-    config("leftOrientationRobot", m_leftOrientationRobot);
-    config("rightOrientationRobot", m_rightOrientationRobot);
+    mc_rtc::log::info("HoldBox:\n{}", m_config.dump(true, true));
+
+    if (
+        !m_config.has("objectName")
+        || !m_config.has("objectSurfaceLeftGripper")
+        || !m_config.has("objectSurfaceRightGripper")
+        || !m_config.has("leftPositionRobot")
+        || !m_config.has("rightPositionRobot")
+        || !m_config.has("leftOrientationRobot")
+        || !m_config.has("rightOrientationRobot")
+    )
+        mc_rtc::log::error_and_throw("Configuration is missing fields");
+
+    // assume RHPS1
+    m_robotReferenceFrame        = m_config("robotReferenceFrame", std::string("CHEST_Y_LINK"));
+    m_gripperSurfaceLeftGripper  = m_config("gripperSurfaceLeftGripper", std::string("LeftHandSupportPlate"));
+    m_gripperSurfaceRightGripper = m_config("gripperSurfaceRightGripper", std::string("RightHandSupportPlate"));
+
+    m_config("objectName", m_objectName);
+    m_config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
+    m_config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
+
+    m_stiffness = m_config("stiffness", 2.0);
+    m_weight    = m_config("weight", 2000.0);
+
+    m_boxHalfWidth = 0.0;
+
+    m_config("leftPositionRobot", m_leftPositionRobot);
+    m_config("rightPositionRobot", m_rightPositionRobot);
+    m_config("leftOrientationRobot", m_leftOrientationRobot);
+    m_config("rightOrientationRobot", m_rightOrientationRobot);
 }
 
 void HoldBox::start(mc_control::fsm::Controller &ctl_)

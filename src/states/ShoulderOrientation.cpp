@@ -7,14 +7,25 @@
 #include <mc_tasks/CoMTask.h>
 #include <mc_tasks/TransformTask.h>
 
-void ShoulderOrientation::configure(const mc_rtc::Configuration &config)
+void ShoulderOrientation::configure(const mc_rtc::Configuration & config)
 {
-    mc_rtc::log::info("ShoulderOrientation:\n{}", config.dump(true, true));
+    m_config.load(config);
 
-    config("stiffness", m_stiffness);
-    config("weight", m_weight);
-    config("leftShoulderAngle", m_leftShoulderAngle);
-    config("rightShoulderAngle", m_rightShoulderAngle);
+    mc_rtc::log::info("ShoulderOrientation:\n{}", m_config.dump(true, true));
+
+    m_leftReferenceFrame  = m_config("leftReferenceFrame", std::string("L_SHOULDER_P_LINK"));
+    m_rightReferenceFrame = m_config("rightReferenceFrame", std::string("R_SHOULDER_P_LINK"));
+
+    m_leftShoulderFrame   = m_config("leftShoulderFrame", std::string("L_SHOULDER_Y_LINK"));
+    m_rightShoulderFrame  = m_config("rightShoulderFrame", std::string("R_SHOULDER_Y_LINK"));
+
+    m_leftShoulderActiveJoints  = m_config("leftShoulderActiveJoints", std::vector<std::string>{"L_SHOULDER_Y"});
+    m_rightShoulderActiveJoints = m_config("rightShoulderActiveJoints", std::vector<std::string>{"R_SHOULDER_Y"});
+
+    m_stiffness          = m_config("stiffness", 2.0);
+    m_weight             = m_config("weight", 2000.0);
+    m_leftShoulderAngle  = m_config("leftShoulderAngle", 5.0 * M_PI / 180.0);
+    m_rightShoulderAngle = m_config("rightShoulderAngle", -5.0 * M_PI / 180.0);
 }
 
 void ShoulderOrientation::start(mc_control::fsm::Controller &ctl_)

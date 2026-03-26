@@ -11,9 +11,11 @@ struct GoTo : BWC::FootstepPlannerState
         void configure(const mc_rtc::Configuration &config) override;
 
     protected:
-        bool m_autoStart = false;
-        bool m_planning  = false;
-        bool m_started   = false;
+        bool m_autoStart;
+        bool m_planning;
+        bool m_started;
 
         Eigen::Vector3d m_destinationPoseWorld;
+
+        mc_rtc::Configuration m_config;
 };

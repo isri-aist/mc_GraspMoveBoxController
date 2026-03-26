@@ -3,13 +3,21 @@
 
 #include <BaselineWalkingController/FootManager.h>
 
-void GoTo::configure(const mc_rtc::Configuration &config)
+void GoTo::configure(const mc_rtc::Configuration & config)
 {
-    FootstepPlannerState::configure(config);
+    m_config.load(config);
 
-    mc_rtc::log::info("GoTo:\n{}", config.dump(true, true));
-    config("autoStart", m_autoStart);
-    config("destinationPoseWorld", m_destinationPoseWorld);
+    FootstepPlannerState::configure(m_config);
+
+    mc_rtc::log::info("GoTo:\n{}", m_config.dump(true, true));
+
+    if (!m_config.has("destinationPoseWorld")) mc_rtc::log::error_and_throw("Configuration is missing fields");
+
+    m_autoStart = m_config("autoStart", false);
+
+    m_config("destinationPoseWorld", m_destinationPoseWorld);
+
+    m_started = false;
 }
 
 void GoTo::start(mc_control::fsm::Controller &ctl_)

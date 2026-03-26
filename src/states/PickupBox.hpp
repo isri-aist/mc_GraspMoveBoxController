@@ -27,34 +27,34 @@ struct PickupBox : mc_control::fsm::State
         std::shared_ptr<mc_tasks::force::AdmittanceTask> m_leftGripperTask;
         std::shared_ptr<mc_tasks::force::AdmittanceTask> m_rightGripperTask;
 
-        std::string m_robotReferenceFrame = "CHEST_Y_LINK";
+        std::string m_robotReferenceFrame;
+        std::string m_gripperSurfaceLeftGripper;
+        std::string m_gripperSurfaceRightGripper;
         std::string m_objectName;
         std::string m_objectSurfaceLeftGripper;
         std::string m_objectSurfaceRightGripper;
-        std::string m_gripperSurfaceLeftGripper  = "LeftHandSupportPlate";
-        std::string m_gripperSurfaceRightGripper = "RightHandSupportPlate";
 
-        Phase m_phase = Phase::Init;
+        Phase m_phase;
 
-        double m_stiffness                   = 2.0;
-        double m_weight                      = 2000.0;
-        double m_admittanceStiffness         = 1.0;
-        double m_admittanceDamping           = 300.0;
-        double m_leftAdmittanceWrenchTarget  = 10.0;
-        double m_rightAdmittanceWrenchTarget = 10.0;
-        double m_admittanceCoefficient       = 0.001;
-        double m_completionEval              = 0.05;
-        double m_completionSpeed             = 1e-3;
-        double m_boxHalfWidth                = 0.0;
-        double m_crouchOffset                = 0.05;
-        double m_leftGripperContactOffset    = 0.0;
-        double m_rightGripperContactOffset   = 0.0;
+        double m_stiffness;
+        double m_weight;
+        double m_admittanceStiffness;
+        double m_admittanceDamping;
+        double m_leftAdmittanceWrenchTarget;
+        double m_rightAdmittanceWrenchTarget;
+        double m_admittanceCoefficient;
+        double m_completionEval;
+        double m_completionSpeed;
+        double m_leftGripperContactOffset;
+        double m_rightGripperContactOffset;
+        double m_boxHalfWidth;
+        double m_crouchOffset;
 
-        bool m_contactAdded             = false;
-        bool m_removeContactAtTeardown  = false;
-        bool m_manualPhaseChange        = true;
-        bool m_phaseAdvanceRequested    = false;
-        bool m_centroidManagerDidItsJob = false;
+        bool m_removeContactAtTeardown;
+        bool m_manualPhaseChange;
+        bool m_contactAdded;
+        bool m_phaseAdvanceRequested;
+        bool m_centroidManagerDidItsJob;
 
         mc_control::Contact m_leftContact{};
         mc_control::Contact m_rightContact{};
@@ -87,6 +87,8 @@ struct PickupBox : mc_control::fsm::State
 
         Eigen::Quaterniond m_leftOrientationRobot;
         Eigen::Quaterniond m_rightOrientationRobot;
+
+        mc_rtc::Configuration m_config;
 
         void handlePhaseChange(DemoController &);
         void updateStateConfig(DemoController &);
