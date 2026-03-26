@@ -41,41 +41,41 @@ void LookAtBox::start(mc_control::fsm::Controller & ctl_)
     ctl.solver().addTask(m_gazeTask);
 
     ctl.gui()->addElement(
-                          {"GMB", "LookAtBox"},
-                          mc_rtc::gui::Transform(
-                                                 "camera",
-                                                 [this, &ctl]
-                                                 {
-                                                     return ctl.robot().frame(m_cameraControlFrame).position();
-                                                 }
-                                                ),
-                          mc_rtc::gui::Transform(
-                                                 "box",
-                                                 [this, &ctl]
-                                                 {
-                                                     return ctl.robot(m_objectName).posW();
-                                                 }
-                                                ),
-                          mc_rtc::gui::Transform(
-                                                 "box in cam",
-                                                 [this, &ctl]
-                                                 {
-                                                     return computeBoxInCam(
-                                                                            ctl.robot().frame(m_cameraControlFrame).
-                                                                            position(),
-                                                                            ctl.robot(m_objectName).posW()
-                                                                           );
-                                                 }
-                                                )
-                         );
+        {"GMB", "LookAtBox"},
+        mc_rtc::gui::Transform(
+            "camera",
+            [this, &ctl]
+            {
+                return ctl.robot().frame(m_cameraControlFrame).position();
+            }
+            ),
+        mc_rtc::gui::Transform(
+            "box",
+            [this, &ctl]
+            {
+                return ctl.robot(m_objectName).posW();
+            }
+            ),
+        mc_rtc::gui::Transform(
+            "box in cam",
+            [this, &ctl]
+            {
+                return computeBoxInCam(
+                    ctl.robot().frame(m_cameraControlFrame).
+                        position(),
+                    ctl.robot(m_objectName).posW()
+                    );
+            }
+            )
+        );
 
     ctl.logger().addLogEntry(
-                             "gaze_error",
-                             [this]
-                             {
-                                 return m_error;
-                             }
-                            );
+        "gaze_error",
+        [this]
+        {
+            return m_error;
+        }
+        );
 }
 
 bool LookAtBox::run(mc_control::fsm::Controller & ctl_)

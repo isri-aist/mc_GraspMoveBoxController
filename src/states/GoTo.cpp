@@ -40,15 +40,15 @@ void GoTo::start(mc_control::fsm::Controller & ctl_)
 
     else
         ctl.gui()->addElement(
-                              {"GraspMoveBox"},
-                              mc_rtc::gui::Button(
-                                                  "Start",
-                                                  [start]
-                                                  {
-                                                      start();
-                                                  }
-                                                 )
-                             );
+            {"GraspMoveBox"},
+            mc_rtc::gui::Button(
+                "Start",
+                [start]
+                {
+                    start();
+                }
+                )
+            );
 }
 
 bool GoTo::run(mc_control::fsm::Controller & ctl_)

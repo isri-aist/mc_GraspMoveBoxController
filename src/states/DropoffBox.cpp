@@ -79,35 +79,43 @@ void DropoffBox::start(mc_control::fsm::Controller & ctl_)
     {
         mc_rtc::log::info("contact: {}:{} <-> {}:{}", c.r1->c_str(), c.r1Surface, c.r2->c_str(), c.r2Surface);
 
-        if (c.r1 == ctl.robot().name() && c.r1Surface == m_gripperSurfaceLeftGripper && c.r2 == m_objectName &&
-            c.r2Surface == m_objectSurfaceLeftGripper)
+        if (c.r1 == ctl.robot().name()
+            && c.r1Surface == m_gripperSurfaceLeftGripper
+            && c.r2 == m_objectName
+            && c.r2Surface == m_objectSurfaceLeftGripper)
             hasLeftContact = true;
 
-        if (c.r1 == ctl.robot().name() && c.r1Surface == m_gripperSurfaceRightGripper && c.r2 == m_objectName &&
-            c.r2Surface == m_objectSurfaceRightGripper)
+        if (c.r1 == ctl.robot().name()
+            && c.r1Surface == m_gripperSurfaceRightGripper
+            && c.r2 == m_objectName
+            && c.r2Surface == m_objectSurfaceRightGripper)
             hasRightContact = true;
     }
     if (!hasLeftContact || !hasRightContact) mc_rtc::log::error("Didn't find box contacts");
     m_contactAdded = true;
 
-    m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>(
-                                                                  m_gripperSurfaceLeftGripper,
-                                                                  ctl.robots(),
-                                                                  0,
-                                                                  m_stiffness,
-                                                                  m_weight
-                                                                 );
+    m_leftGripperTask =
+        std::make_shared<mc_tasks::TransformTask>(
+            m_gripperSurfaceLeftGripper,
+            ctl.robots(),
+            0,
+            m_stiffness,
+            m_weight
+            );
+
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
     m_leftGripperTask->target(ctl.robot().frame(m_gripperSurfaceLeftGripper).position());
     ctl.solver().addTask(m_leftGripperTask);
 
-    m_rightGripperTask = std::make_shared<mc_tasks::TransformTask>(
-                                                                   m_gripperSurfaceRightGripper,
-                                                                   ctl.robots(),
-                                                                   0,
-                                                                   m_stiffness,
-                                                                   m_weight
-                                                                  );
+    m_rightGripperTask =
+        std::make_shared<mc_tasks::TransformTask>(
+            m_gripperSurfaceRightGripper,
+            ctl.robots(),
+            0,
+            m_stiffness,
+            m_weight
+            );
+
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
     m_rightGripperTask->target(ctl.robot().frame(m_gripperSurfaceRightGripper).position());
     ctl.solver().addTask(m_rightGripperTask);
@@ -179,10 +187,10 @@ void DropoffBox::teardown(mc_control::fsm::Controller & ctl_)
 
 void DropoffBox::handlePhaseChange(DemoController & ctl)
 {
-    bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval &&
-                         m_leftGripperTask->speed().norm() < m_completionSpeed &&
-                         m_rightGripperTask->eval().norm() < m_completionEval &&
-                         m_rightGripperTask->speed().norm() < m_completionSpeed;
+    bool taskCompleted = m_leftGripperTask->eval().norm() < m_completionEval
+                         && m_leftGripperTask->speed().norm() < m_completionSpeed
+                         && m_rightGripperTask->eval().norm() < m_completionEval
+                         && m_rightGripperTask->speed().norm() < m_completionSpeed;
 
     if (m_phase == Phase::Init) taskCompleted = true;
 
@@ -194,10 +202,15 @@ void DropoffBox::handlePhaseChange(DemoController & ctl)
 
     switch (m_phase)
     {
-        case Phase::Init: m_phase = Phase::LowerBox;
+        case Phase::Init:
+        {
+            m_phase          = Phase::LowerBox;
             currentPhaseName = "LowerBox";
             break;
-        case Phase::LowerBox: if (m_contactAdded)
+        }
+        case Phase::LowerBox:
+        {
+            if (m_contactAdded)
             {
                 ctl.clearContacts();
                 m_contactAdded = false;
@@ -209,12 +222,19 @@ void DropoffBox::handlePhaseChange(DemoController & ctl)
             m_phase          = Phase::DropBox;
             currentPhaseName = "DropBox";
             break;
-        case Phase::DropBox: m_phase = Phase::Retreat;
+        }
+        case Phase::DropBox:
+        {
+            m_phase          = Phase::Retreat;
             currentPhaseName = "Retreat";
             break;
-        case Phase::Retreat: m_phase = Phase::Finished;
+        }
+        case Phase::Retreat:
+        {
+            m_phase          = Phase::Finished;
             currentPhaseName = "Finished";
             break;
+        }
         case Phase::Finished: break;
     }
 
@@ -224,12 +244,12 @@ void DropoffBox::handlePhaseChange(DemoController & ctl)
     const char * statusColor = taskCompleted ? "\x1b[30;42m" : "\x1b[37;41m";
 
     mc_rtc::log::info(
-                      "Phase changed to {} ({}eval: {}\x1b[0m, request: {})",
-                      currentPhaseName,
-                      statusColor,
-                      taskCompleted,
-                      m_phaseAdvanceRequested
-                     );
+        "Phase changed to {} ({}eval: {}\x1b[0m, request: {})",
+        currentPhaseName,
+        statusColor,
+        taskCompleted,
+        m_phaseAdvanceRequested
+        );
 }
 
 void DropoffBox::updateStateConfig(DemoController & ctl)
@@ -250,26 +270,26 @@ void DropoffBox::updateStateConfig(DemoController & ctl)
 
     switch (m_phase)
     {
-        case (Phase::Init):
+        case (Phase::Init): break;
         case (Phase::Finished): break;
 
         case (Phase::LowerBox):
         {
             m_leftGripperTask->target(
-                                      ctl.robot().frame(m_robotReferenceFrame),
-                                      {m_leftOrientationRobot, m_leftDropPositionRobot}
-                                     );
+                ctl.robot().frame(m_robotReferenceFrame),
+                {m_leftOrientationRobot, m_leftDropPositionRobot}
+                );
             m_rightGripperTask->target(
-                                       ctl.robot().frame(m_robotReferenceFrame),
-                                       {m_rightOrientationRobot, m_rightDropPositionRobot}
-                                      );
+                ctl.robot().frame(m_robotReferenceFrame),
+                {m_rightOrientationRobot, m_rightDropPositionRobot}
+                );
 
             if (!m_centroidManagerDidItsJob)
                 m_centroidManagerDidItsJob = ctl.centroidalManager_->setRefComZ(
-                                                                                ctl.m_refCoMZ - m_crouchOffset,
-                                                                                ctl.t() + 1.0,
-                                                                                m_crouchOffset * 30.0
-                                                                               );
+                    ctl.m_refCoMZ - m_crouchOffset,
+                    ctl.t() + 1.0,
+                    m_crouchOffset * 30.0
+                    );
 
             break;
         }
@@ -280,48 +300,52 @@ void DropoffBox::updateStateConfig(DemoController & ctl)
             auto rightOffsetRotation = sva::RotZ(mc_rtc::constants::PI / 2);
 
             m_leftGripperTask->targetSurface(
-                                             ctl.robot(m_objectName).robotIndex(),
-                                             m_objectSurfaceLeftGripper,
-                                             {
-                                                 leftOffsetRotation * m_leftOrientationBox,
-                                                 (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()
-                                             }
-                                            );
+                ctl.robot(m_objectName).robotIndex(),
+                m_objectSurfaceLeftGripper,
+                {
+                    leftOffsetRotation * m_leftOrientationBox,
+                    (m_leftApproachOffsetBox + m_leftGraspOffsetBox).eval()
+                }
+                );
 
             m_rightGripperTask->targetSurface(
-                                              ctl.robot(m_objectName).robotIndex(),
-                                              m_objectSurfaceRightGripper,
-                                              {
-                                                  rightOffsetRotation * m_rightOrientationBox,
-                                                  (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()
-                                              }
-                                             );
+                ctl.robot(m_objectName).robotIndex(),
+                m_objectSurfaceRightGripper,
+                {
+                    rightOffsetRotation * m_rightOrientationBox,
+                    (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()
+                }
+                );
             break;
         }
 
         case (Phase::Retreat):
         {
             m_leftGripperTask->target(
-                                      ctl.robot().frame(m_robotReferenceFrame),
-                                      {
-                                          ctl.robot().frame(m_gripperSurfaceLeftGripper).position().rotation(),
-                                          m_leftDropPositionRobot + m_leftGraspOffsetRobot + m_leftApproachOffsetRobot +
-                                          Eigen::Vector3d{0.0, 0.0, m_crouchOffset}
-                                      }
-                                     );
+                ctl.robot().frame(m_robotReferenceFrame),
+                {
+                    ctl.robot().frame(m_gripperSurfaceLeftGripper).position().rotation(),
+                    m_leftDropPositionRobot + m_leftGraspOffsetRobot + m_leftApproachOffsetRobot +
+                    Eigen::Vector3d{0.0, 0.0, m_crouchOffset}
+                }
+                );
             m_rightGripperTask->target(
-                                       ctl.robot().frame(m_robotReferenceFrame),
-                                       {
-                                           ctl.robot().frame(m_gripperSurfaceRightGripper).position().rotation(),
-                                           m_rightDropPositionRobot + m_rightGraspOffsetRobot +
-                                           m_rightApproachOffsetRobot +
-                                           Eigen::Vector3d{0.0, 0.0, m_crouchOffset}
-                                       }
-                                      );
+                ctl.robot().frame(m_robotReferenceFrame),
+                {
+                    ctl.robot().frame(m_gripperSurfaceRightGripper).position().rotation(),
+                    m_rightDropPositionRobot + m_rightGraspOffsetRobot +
+                    m_rightApproachOffsetRobot +
+                    Eigen::Vector3d{0.0, 0.0, m_crouchOffset}
+                }
+                );
 
             if (!m_centroidManagerDidItsJob)
                 m_centroidManagerDidItsJob =
-                    ctl.centroidalManager_->setRefComZ(ctl.m_refCoMZ, ctl.t() + 1.0, m_crouchOffset * 30.0);
+                    ctl.centroidalManager_->setRefComZ(
+                        ctl.m_refCoMZ,
+                        ctl.t() + 1.0,
+                        m_crouchOffset * 30.0
+                        );
             break;
         }
     }
@@ -335,326 +359,326 @@ void DropoffBox::addToGui(DemoController & ctl)
     };
 
     ctl.gui()->addElement(
-                          {"GMB", "Dropoff"},
-                          mc_rtc::gui::Label(
-                                             "Left gripper task eval norm: ",
-                                             [this]
-                                             {
-                                                 std::string data = std::to_string(m_leftGripperTask->eval().norm());
-                                                 data             += "m\t";
-                                                 data             += std::to_string(m_leftGripperTask->speed().norm());
-                                                 data             += "m/s";
-                                                 return data;
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Right gripper task eval norm: ",
-                                             [this]
-                                             {
-                                                 std::string data = std::to_string(m_rightGripperTask->eval().norm());
-                                                 data             += "m\t";
-                                                 data             += std::to_string(m_rightGripperTask->speed().norm());
-                                                 data             += "m/s";
-                                                 return data;
-                                             }
-                                            )
-                         );
+        {"GMB", "Dropoff"},
+        mc_rtc::gui::Label(
+            "Left gripper task eval norm: ",
+            [this]
+            {
+                std::string data = std::to_string(m_leftGripperTask->eval().norm());
+                data             += "m\t";
+                data             += std::to_string(m_leftGripperTask->speed().norm());
+                data             += "m/s";
+                return data;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Right gripper task eval norm: ",
+            [this]
+            {
+                std::string data = std::to_string(m_rightGripperTask->eval().norm());
+                data             += "m\t";
+                data             += std::to_string(m_rightGripperTask->speed().norm());
+                data             += "m/s";
+                return data;
+            }
+            )
+        );
 
     ctl.gui()->addElement(
-                          {"GMB", "Dropoff"},
-                          mc_rtc::gui::Button(
-                                              "Next Phase",
-                                              [this]
-                                              {
-                                                  m_phaseAdvanceRequested = true;
-                                              }
-                                             ),
-                          mc_rtc::gui::Label(
-                                             "Current Phase: ",
-                                             [this]
-                                             {
-                                                 switch (m_phase)
-                                                 {
-                                                     case Phase::Init: return std::string{"None"};
-                                                     case Phase::LowerBox: return std::string{"LowerBox"};
-                                                     case Phase::DropBox: return std::string{"DropBox"};
-                                                     case Phase::Retreat: return std::string{"Retreat"};
-                                                 }
-                                                 return std::string{"Unknown"};
-                                             }
-                                            ),
-                          mc_rtc::gui::Checkbox(
-                                                "Manual phase change: ",
-                                                [this]
-                                                {
-                                                    return m_manualPhaseChange;
-                                                },
-                                                [this]
-                                                {
-                                                    m_manualPhaseChange = !m_manualPhaseChange;
-                                                }
-                                               )
-                         );
+        {"GMB", "Dropoff"},
+        mc_rtc::gui::Button(
+            "Next Phase",
+            [this]
+            {
+                m_phaseAdvanceRequested = true;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Current Phase: ",
+            [this]
+            {
+                switch (m_phase)
+                {
+                    case Phase::Init: return std::string{"None"};
+                    case Phase::LowerBox: return std::string{"LowerBox"};
+                    case Phase::DropBox: return std::string{"DropBox"};
+                    case Phase::Retreat: return std::string{"Retreat"};
+                }
+                return std::string{"Unknown"};
+            }
+            ),
+        mc_rtc::gui::Checkbox(
+            "Manual phase change: ",
+            [this]
+            {
+                return m_manualPhaseChange;
+            },
+            [this]
+            {
+                m_manualPhaseChange = !m_manualPhaseChange;
+            }
+            )
+        );
 
 
     ctl.gui()->addElement(
-                          {"GMB", "Dropoff"},
-                          mc_rtc::gui::NumberInput(
-                                                   "Left gripper contact offset",
-                                                   [this]
-                                                   {
-                                                       return m_leftGripperContactOffset;
-                                                   },
-                                                   [this](double value)
-                                                   {
-                                                       m_leftGripperContactOffset = value;
-                                                   }
-                                                  ),
-                          mc_rtc::gui::NumberInput(
-                                                   "Right gripper contact offset",
-                                                   [this]
-                                                   {
-                                                       return m_rightGripperContactOffset;
-                                                   },
-                                                   [this](double value)
-                                                   {
-                                                       m_rightGripperContactOffset = value;
-                                                   }
-                                                  ),
-                          mc_rtc::gui::NumberInput(
-                                                   "Crouch offset",
-                                                   [this]
-                                                   {
-                                                       return m_crouchOffset;
-                                                   },
-                                                   [this](double value)
-                                                   {
-                                                       m_centroidManagerDidItsJob = false;
-                                                       m_crouchOffset             = value;
-                                                   }
-                                                  ),
-                          mc_rtc::gui::NumberInput(
-                                                   "Stiffness",
-                                                   [this]
-                                                   {
-                                                       return m_stiffness;
-                                                   },
-                                                   [this](double value)
-                                                   {
-                                                       m_stiffness = value;
-                                                   }
-                                                  ),
-                          mc_rtc::gui::NumberInput(
-                                                   "Weight",
-                                                   [this]
-                                                   {
-                                                       return m_weight;
-                                                   },
-                                                   [this](double value)
-                                                   {
-                                                       m_weight = value;
-                                                   }
-                                                  ),
-                          mc_rtc::gui::ArrayInput(
-                                                  "Left approach offset robot",
-                                                  [this]
-                                                  {
-                                                      return m_leftApproachOffsetRobot;
-                                                  },
-                                                  [this](const Eigen::Vector3d & value)
-                                                  {
-                                                      m_leftApproachOffsetRobot = value;
-                                                      m_leftApproachOffsetBox   = BoxOffsetFromRobotOffset(
-                                                           m_leftApproachOffsetRobot,
-                                                           BoxNoLid,
-                                                           Left
-                                                          );
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayInput(
-                                                  "Right approach offset robot",
-                                                  [this]
-                                                  {
-                                                      return m_rightApproachOffsetRobot;
-                                                  },
-                                                  [this](const Eigen::Vector3d & value)
-                                                  {
-                                                      m_rightApproachOffsetRobot = value;
-                                                      m_rightApproachOffsetBox   =
-                                                          BoxOffsetFromRobotOffset(
-                                                               m_rightApproachOffsetRobot,
-                                                               BoxNoLid,
-                                                               Right
-                                                              );
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayInput(
-                                                  "Left drop position robot",
-                                                  [this]
-                                                  {
-                                                      return m_leftDropPositionRobot;
-                                                  },
-                                                  [this](const Eigen::Vector3d & value)
-                                                  {
-                                                      m_leftDropPositionRobot = value;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayInput(
-                                                  "Right drop position robot",
-                                                  [this]
-                                                  {
-                                                      return m_rightDropPositionRobot;
-                                                  },
-                                                  [this](const Eigen::Vector3d & value)
-                                                  {
-                                                      m_rightDropPositionRobot = value;
-                                                  }
-                                                 )
-                         );
+        {"GMB", "Dropoff"},
+        mc_rtc::gui::NumberInput(
+            "Left gripper contact offset",
+            [this]
+            {
+                return m_leftGripperContactOffset;
+            },
+            [this](double value)
+            {
+                m_leftGripperContactOffset = value;
+            }
+            ),
+        mc_rtc::gui::NumberInput(
+            "Right gripper contact offset",
+            [this]
+            {
+                return m_rightGripperContactOffset;
+            },
+            [this](double value)
+            {
+                m_rightGripperContactOffset = value;
+            }
+            ),
+        mc_rtc::gui::NumberInput(
+            "Crouch offset",
+            [this]
+            {
+                return m_crouchOffset;
+            },
+            [this](double value)
+            {
+                m_centroidManagerDidItsJob = false;
+                m_crouchOffset             = value;
+            }
+            ),
+        mc_rtc::gui::NumberInput(
+            "Stiffness",
+            [this]
+            {
+                return m_stiffness;
+            },
+            [this](double value)
+            {
+                m_stiffness = value;
+            }
+            ),
+        mc_rtc::gui::NumberInput(
+            "Weight",
+            [this]
+            {
+                return m_weight;
+            },
+            [this](double value)
+            {
+                m_weight = value;
+            }
+            ),
+        mc_rtc::gui::ArrayInput(
+            "Left approach offset robot",
+            [this]
+            {
+                return m_leftApproachOffsetRobot;
+            },
+            [this](const Eigen::Vector3d & value)
+            {
+                m_leftApproachOffsetRobot = value;
+                m_leftApproachOffsetBox   = BoxOffsetFromRobotOffset(
+                    m_leftApproachOffsetRobot,
+                    BoxNoLid,
+                    Left
+                    );
+            }
+            ),
+        mc_rtc::gui::ArrayInput(
+            "Right approach offset robot",
+            [this]
+            {
+                return m_rightApproachOffsetRobot;
+            },
+            [this](const Eigen::Vector3d & value)
+            {
+                m_rightApproachOffsetRobot = value;
+                m_rightApproachOffsetBox   =
+                    BoxOffsetFromRobotOffset(
+                        m_rightApproachOffsetRobot,
+                        BoxNoLid,
+                        Right
+                        );
+            }
+            ),
+        mc_rtc::gui::ArrayInput(
+            "Left drop position robot",
+            [this]
+            {
+                return m_leftDropPositionRobot;
+            },
+            [this](const Eigen::Vector3d & value)
+            {
+                m_leftDropPositionRobot = value;
+            }
+            ),
+        mc_rtc::gui::ArrayInput(
+            "Right drop position robot",
+            [this]
+            {
+                return m_rightDropPositionRobot;
+            },
+            [this](const Eigen::Vector3d & value)
+            {
+                m_rightDropPositionRobot = value;
+            }
+            )
+        );
 
     ctl.gui()->addElement(
-                          {"GMB", "Dropoff"},
-                          mc_rtc::gui::Label(
-                                             "Robot reference frame: ",
-                                             [this]
-                                             {
-                                                 return m_robotReferenceFrame;
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Object name: ",
-                                             [this]
-                                             {
-                                                 return m_objectName;
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Object left surface: ",
-                                             [this]
-                                             {
-                                                 return m_objectSurfaceLeftGripper;
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Object right surface: ",
-                                             [this]
-                                             {
-                                                 return m_objectSurfaceRightGripper;
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Gripper left surface: ",
-                                             [this]
-                                             {
-                                                 return m_gripperSurfaceLeftGripper;
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Gripper right surface: ",
-                                             [this]
-                                             {
-                                                 return m_gripperSurfaceRightGripper;
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Completion eval: ",
-                                             [this]
-                                             {
-                                                 return std::to_string(m_completionEval);
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Completion speed: ",
-                                             [this]
-                                             {
-                                                 return std::to_string(m_completionSpeed);
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Contact added: ",
-                                             [this, &boolToString]
-                                             {
-                                                 return std::string{boolToString(m_contactAdded)};
-                                             }
-                                            ),
-                          mc_rtc::gui::Label(
-                                             "Remove contact at teardown: ",
-                                             [this, &boolToString]
-                                             {
-                                                 return std::string{boolToString(m_removeContactAtTeardown)};
-                                             }
-                                            ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Left grasp offset box",
-                                                  [this]
-                                                  {
-                                                      return m_leftGraspOffsetBox;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Right grasp offset box",
-                                                  [this]
-                                                  {
-                                                      return m_rightGraspOffsetBox;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Left approach offset box",
-                                                  [this]
-                                                  {
-                                                      return m_leftApproachOffsetBox;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Right approach offset box",
-                                                  [this]
-                                                  {
-                                                      return m_rightApproachOffsetBox;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Left grasp offset robot",
-                                                  [this]
-                                                  {
-                                                      return m_leftGraspOffsetRobot;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Right grasp offset robot",
-                                                  [this]
-                                                  {
-                                                      return m_rightGraspOffsetRobot;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Left orientation box",
-                                                  [this]
-                                                  {
-                                                      return m_leftOrientationBox;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Right orientation box",
-                                                  [this]
-                                                  {
-                                                      return m_rightOrientationBox;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Left orientation robot",
-                                                  [this]
-                                                  {
-                                                      return m_leftOrientationRobot;
-                                                  }
-                                                 ),
-                          mc_rtc::gui::ArrayLabel(
-                                                  "Right orientation robot",
-                                                  [this]
-                                                  {
-                                                      return m_rightOrientationRobot;
-                                                  }
-                                                 )
-                         );
+        {"GMB", "Dropoff"},
+        mc_rtc::gui::Label(
+            "Robot reference frame: ",
+            [this]
+            {
+                return m_robotReferenceFrame;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Object name: ",
+            [this]
+            {
+                return m_objectName;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Object left surface: ",
+            [this]
+            {
+                return m_objectSurfaceLeftGripper;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Object right surface: ",
+            [this]
+            {
+                return m_objectSurfaceRightGripper;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Gripper left surface: ",
+            [this]
+            {
+                return m_gripperSurfaceLeftGripper;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Gripper right surface: ",
+            [this]
+            {
+                return m_gripperSurfaceRightGripper;
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Completion eval: ",
+            [this]
+            {
+                return std::to_string(m_completionEval);
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Completion speed: ",
+            [this]
+            {
+                return std::to_string(m_completionSpeed);
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Contact added: ",
+            [this, &boolToString]
+            {
+                return std::string{boolToString(m_contactAdded)};
+            }
+            ),
+        mc_rtc::gui::Label(
+            "Remove contact at teardown: ",
+            [this, &boolToString]
+            {
+                return std::string{boolToString(m_removeContactAtTeardown)};
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Left grasp offset box",
+            [this]
+            {
+                return m_leftGraspOffsetBox;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Right grasp offset box",
+            [this]
+            {
+                return m_rightGraspOffsetBox;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Left approach offset box",
+            [this]
+            {
+                return m_leftApproachOffsetBox;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Right approach offset box",
+            [this]
+            {
+                return m_rightApproachOffsetBox;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Left grasp offset robot",
+            [this]
+            {
+                return m_leftGraspOffsetRobot;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Right grasp offset robot",
+            [this]
+            {
+                return m_rightGraspOffsetRobot;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Left orientation box",
+            [this]
+            {
+                return m_leftOrientationBox;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Right orientation box",
+            [this]
+            {
+                return m_rightOrientationBox;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Left orientation robot",
+            [this]
+            {
+                return m_leftOrientationRobot;
+            }
+            ),
+        mc_rtc::gui::ArrayLabel(
+            "Right orientation robot",
+            [this]
+            {
+                return m_rightOrientationRobot;
+            }
+            )
+        );
 }
 
 void DropoffBox::removeFromGui(DemoController & ctl)

@@ -6,15 +6,15 @@
 
 struct DemoController_DLLAPI DemoController : public BWC::BaselineWalkingController
 {
-        DemoController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration &config);
+    DemoController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration & config);
 
-        bool run() override;
+    bool run() override;
 
-        void reset(const mc_control::ControllerResetData &reset_data) override;
+    void reset(const mc_control::ControllerResetData & reset_data) override;
 
-        void setRobotPoseFromGui(const sva::PTransformd &tf);
+    void setRobotPoseFromGui(const sva::PTransformd & tf);
 
-        void reinitializeAfterTeleport();
+    void reinitializeAfterTeleport();
 
-        double m_refCoMZ = 0.94;
+    double m_refCoMZ = 0.94;
 };
