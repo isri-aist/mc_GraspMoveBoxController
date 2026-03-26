@@ -20,11 +20,11 @@ void GoTo::configure(const mc_rtc::Configuration & config)
     m_started = false;
 }
 
-void GoTo::start(mc_control::fsm::Controller &ctl_)
+void GoTo::start(mc_control::fsm::Controller & ctl_)
 {
     FootstepPlannerState::start(ctl_);
 
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    auto & ctl = static_cast<DemoController&>(ctl_);
 
     ctl.footManager_->clearFootstepQueue();
 
@@ -36,16 +36,24 @@ void GoTo::start(mc_control::fsm::Controller &ctl_)
         mc_rtc::log::info("Footstep planner triggered");
     };
 
-    if (m_autoStart)
-        start();
+    if (m_autoStart) start();
 
     else
-        ctl.gui()->addElement({"GraspMoveBox"}, mc_rtc::gui::Button("Start", [start] { start(); }));
+        ctl.gui()->addElement(
+                              {"GraspMoveBox"},
+                              mc_rtc::gui::Button(
+                                                  "Start",
+                                                  [start]
+                                                  {
+                                                      start();
+                                                  }
+                                                 )
+                             );
 }
 
-bool GoTo::run(mc_control::fsm::Controller &ctl_)
+bool GoTo::run(mc_control::fsm::Controller & ctl_)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    auto & ctl = static_cast<DemoController&>(ctl_);
 
     if (m_planning && footstepPlanner_->solution_.is_solved)
     {
@@ -63,7 +71,7 @@ bool GoTo::run(mc_control::fsm::Controller &ctl_)
     return false;
 }
 
-void GoTo::teardown(mc_control::fsm::Controller &ctl_)
+void GoTo::teardown(mc_control::fsm::Controller & ctl_)
 {
     FootstepPlannerState::teardown(ctl_);
 }

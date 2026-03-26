@@ -40,23 +40,35 @@ void MoveHands::configure(const mc_rtc::Configuration & config)
     m_config("rightHandTargetOrientationRobot", m_rightHandTargetOrientationRobot);
 }
 
-void MoveHands::start(mc_control::fsm::Controller &ctl_)
+void MoveHands::start(mc_control::fsm::Controller & ctl_)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    auto & ctl = static_cast<DemoController&>(ctl_);
 
     m_leftGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
-            m_leftHandFrame, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
+                                                                            m_leftHandFrame,
+                                                                            ctl.robots(),
+                                                                            0,
+                                                                            m_robotReferenceFrame,
+                                                                            m_stiffness,
+                                                                            m_weight
+                                                                           );
     m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
-            m_rightHandFrame, ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
+                                                                             m_rightHandFrame,
+                                                                             ctl.robots(),
+                                                                             0,
+                                                                             m_robotReferenceFrame,
+                                                                             m_stiffness,
+                                                                             m_weight
+                                                                            );
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
 
     addToGui(ctl_);
 }
 
-bool MoveHands::run(mc_control::fsm::Controller &ctl_)
+bool MoveHands::run(mc_control::fsm::Controller & ctl_)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    auto & ctl = static_cast<DemoController&>(ctl_);
 
     if (m_started)
     {
@@ -79,9 +91,9 @@ bool MoveHands::run(mc_control::fsm::Controller &ctl_)
     return true;
 }
 
-void MoveHands::teardown(mc_control::fsm::Controller &ctl_)
+void MoveHands::teardown(mc_control::fsm::Controller & ctl_)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    auto & ctl = static_cast<DemoController&>(ctl_);
 
     removeFromGui(ctl_);
 
@@ -89,87 +101,145 @@ void MoveHands::teardown(mc_control::fsm::Controller &ctl_)
     ctl.solver().removeTask(m_rightGripperTask);
 }
 
-void MoveHands::addToGui(mc_control::fsm::Controller &ctl_)
+void MoveHands::addToGui(mc_control::fsm::Controller & ctl_)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    auto & ctl = static_cast<DemoController&>(ctl_);
 
     if (!m_autoStart)
     {
-        ctl.gui()->addElement({"GMB", "MoveHands"}, mc_rtc::gui::Button("Start", [this] { m_started = true; }));
+        ctl.gui()->addElement(
+                              {"GMB", "MoveHands"},
+                              mc_rtc::gui::Button(
+                                                  "Start",
+                                                  [this]
+                                                  {
+                                                      m_started = true;
+                                                  }
+                                                 )
+                             );
     }
 
     ctl.gui()->addElement(
-            {"GMB", "MoveHands"},
-            mc_rtc::gui::Label(
-                    "Left gripper task eval norm: ",
-                    [this]
-                    {
-                        std::string data = std::to_string(m_leftGripperTask->eval().norm());
-                        data += "m\t";
-                        data += std::to_string(m_leftGripperTask->speed().norm());
-                        data += "m/s";
-                        return data;
-                    }),
-            mc_rtc::gui::Label(
-                    "Right gripper task eval norm: ",
-                    [this]
-                    {
-                        std::string data = std::to_string(m_rightGripperTask->eval().norm());
-                        data += "m\t";
-                        data += std::to_string(m_rightGripperTask->speed().norm());
-                        data += "m/s";
-                        return data;
-                    }));
+                          {"GMB", "MoveHands"},
+                          mc_rtc::gui::Label(
+                                             "Left gripper task eval norm: ",
+                                             [this]
+                                             {
+                                                 std::string data = std::to_string(m_leftGripperTask->eval().norm());
+                                                 data             += "m\t";
+                                                 data             += std::to_string(m_leftGripperTask->speed().norm());
+                                                 data             += "m/s";
+                                                 return data;
+                                             }
+                                            ),
+                          mc_rtc::gui::Label(
+                                             "Right gripper task eval norm: ",
+                                             [this]
+                                             {
+                                                 std::string data = std::to_string(m_rightGripperTask->eval().norm());
+                                                 data             += "m\t";
+                                                 data             += std::to_string(m_rightGripperTask->speed().norm());
+                                                 data             += "m/s";
+                                                 return data;
+                                             }
+                                            )
+                         );
 
     ctl.gui()->addElement(
-            {"GMB", "MoveHands"},
-            mc_rtc::gui::NumberInput(
-                    "Stiffness", [this] { return m_stiffness; }, [this](double value) { m_stiffness = value; }),
-            mc_rtc::gui::NumberInput(
-                    "Weight", [this] { return m_weight; }, [this](double value) { m_weight = value; }),
-            mc_rtc::gui::ArrayInput(
-                    "Left hand target position robot",
-                    [this] { return m_leftHandTargetPositionRobot; },
-                    [this](const Eigen::Vector3d &value) { m_leftHandTargetPositionRobot = value; }),
-            mc_rtc::gui::ArrayInput(
-                    "Right hand target position robot",
-                    [this] { return m_rightHandTargetPositionRobot; },
-                    [this](const Eigen::Vector3d &value) { m_rightHandTargetPositionRobot = value; }));
+                          {"GMB", "MoveHands"},
+                          mc_rtc::gui::NumberInput(
+                                                   "Stiffness",
+                                                   [this]
+                                                   {
+                                                       return m_stiffness;
+                                                   },
+                                                   [this](double value)
+                                                   {
+                                                       m_stiffness = value;
+                                                   }
+                                                  ),
+                          mc_rtc::gui::NumberInput(
+                                                   "Weight",
+                                                   [this]
+                                                   {
+                                                       return m_weight;
+                                                   },
+                                                   [this](double value)
+                                                   {
+                                                       m_weight = value;
+                                                   }
+                                                  ),
+                          mc_rtc::gui::ArrayInput(
+                                                  "Left hand target position robot",
+                                                  [this]
+                                                  {
+                                                      return m_leftHandTargetPositionRobot;
+                                                  },
+                                                  [this](const Eigen::Vector3d & value)
+                                                  {
+                                                      m_leftHandTargetPositionRobot = value;
+                                                  }
+                                                 ),
+                          mc_rtc::gui::ArrayInput(
+                                                  "Right hand target position robot",
+                                                  [this]
+                                                  {
+                                                      return m_rightHandTargetPositionRobot;
+                                                  },
+                                                  [this](const Eigen::Vector3d & value)
+                                                  {
+                                                      m_rightHandTargetPositionRobot = value;
+                                                  }
+                                                 )
+                         );
 
     ctl.gui()->addElement(
-            {"GMB", "MoveHands"},
-            mc_rtc::gui::ComboInput(
-                    "Robot reference frame",
-                    ctl.robot().frames(),
-                    [this] { return m_robotReferenceFrame; },
-                    [this, &ctl_](const std::string &frame)
-                    {
-                        if (frame == m_robotReferenceFrame) return;
-                        m_robotReferenceFrame = frame;
-                    }),
-            mc_rtc::gui::ComboInput(
-                    "Left hand frame",
-                    ctl.robot().frames(),
-                    [this] { return m_leftHandFrame; },
-                    [this, &ctl_](const std::string &frame)
-                    {
-                        if (frame == m_leftHandFrame) return;
-                        m_leftHandFrame = frame;
-                    }),
-            mc_rtc::gui::ComboInput(
-                    "Right hand frame",
-                    ctl.robot().frames(),
-                    [this] { return m_rightHandFrame; },
-                    [this, &ctl_](const std::string &frame)
-                    {
-                        if (frame == m_rightHandFrame) return;
-                        m_rightHandFrame = frame;
-                    }));
+                          {"GMB", "MoveHands"},
+                          mc_rtc::gui::ComboInput(
+                                                  "Robot reference frame",
+                                                  ctl.robot().frames(),
+                                                  [this]
+                                                  {
+                                                      return m_robotReferenceFrame;
+                                                  },
+                                                  [this, &ctl_](const std::string & frame)
+                                                  {
+                                                      if (frame == m_robotReferenceFrame) return;
+                                                      m_robotReferenceFrame = frame;
+                                                  }
+                                                 ),
+                          mc_rtc::gui::ComboInput(
+                                                  "Left hand frame",
+                                                  ctl.robot().frames(),
+                                                  [this]
+                                                  {
+                                                      return m_leftHandFrame;
+                                                  },
+                                                  [this, &ctl_](const std::string & frame)
+                                                  {
+                                                      if (frame == m_leftHandFrame) return;
+                                                      m_leftHandFrame = frame;
+                                                  }
+                                                 ),
+                          mc_rtc::gui::ComboInput(
+                                                  "Right hand frame",
+                                                  ctl.robot().frames(),
+                                                  [this]
+                                                  {
+                                                      return m_rightHandFrame;
+                                                  },
+                                                  [this, &ctl_](const std::string & frame)
+                                                  {
+                                                      if (frame == m_rightHandFrame) return;
+                                                      m_rightHandFrame = frame;
+                                                  }
+                                                 )
+                         );
 }
 
-void MoveHands::removeFromGui(mc_control::fsm::Controller &ctl_)
+void MoveHands::removeFromGui(mc_control::fsm::Controller & ctl_)
 {
-    auto &ctl = static_cast<DemoController &>(ctl_);
+    auto & ctl = static_cast<DemoController&>(ctl_);
     ctl.gui()->removeCategory({"GMB", "MoveHands"});
 }
 
